@@ -1,0 +1,291 @@
+% Apresentação parcial — IND2616: Séries Temporais
+% Compilar duas vezes com pdflatex para atualizar a numeração de páginas.
+\documentclass[10pt,aspectratio=169]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{xcolor}
+
+\definecolor{pucnavy}{RGB}{7,27,51}
+\definecolor{pucblue}{RGB}{18,100,163}
+\definecolor{puccyan}{RGB}{50,180,200}
+\definecolor{pucorange}{RGB}{246,160,65}
+\definecolor{pucgray}{RGB}{96,112,138}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{structure}{fg=pucblue}
+\setbeamercolor{frametitle}{fg=pucnavy,bg=white}
+\setbeamerfont{frametitle}{series=\bfseries,size=\Large}
+\setbeamercolor{title}{fg=white}
+\setbeamercolor{subtitle}{fg=white}
+\setbeamercolor{author}{fg=white}
+\setbeamercolor{date}{fg=white}
+\setbeamercolor{normal text}{fg=pucnavy,bg=white}
+\setbeamercolor{alerted text}{fg=red!70!black}
+\setbeamercolor{block title}{fg=white,bg=pucblue}
+\setbeamercolor{block body}{fg=pucnavy,bg=blue!4}
+\setbeamertemplate{itemize item}{\color{pucorange}$\blacktriangleright$}
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox{%
+  \begin{beamercolorbox}[wd=.78\paperwidth,ht=2.8ex,dp=1.2ex,leftskip=1.5em]{author in head/foot}%
+    \color{pucgray}\scriptsize IND2616: Séries Temporais \quad | \quad PUC-Rio
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.22\paperwidth,ht=2.8ex,dp=1.2ex,rightskip=1.5em plus1fil]{date in head/foot}%
+    \color{pucgray}\scriptsize\insertframenumber/\inserttotalframenumber
+  \end{beamercolorbox}}%
+}
+
+\graphicspath{{figuras/}}
+
+\title{Previsão de internações por VSR em crianças menores de dois anos}
+\subtitle{Apresentação parcial do trabalho}
+\author{Thiago Paes \and Joan Souza \and Matheus Accioly \and Isabelle Gagno}
+\institute{Mestrado \quad | \quad PUC-Rio \\ IND2616: Séries Temporais \quad | \quad Prof. Fernando Cyrino}
+\date{Outubro de 2026}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \colorbox{pucnavy}{%
+    \parbox[c][\paperheight][c]{\paperwidth}{%
+      \vspace{.7cm}
+      \hspace{1.2cm}\textcolor{puccyan}{\Large\textbf{IND2616: Séries Temporais}}\\[1.0cm]
+      \hspace{1.2cm}\parbox{.78\paperwidth}{\color{white}\fontsize{30}{35}\selectfont\bfseries Previsão de internações por VSR em crianças menores de dois anos}\\[.5cm]
+      \hspace{1.2cm}\parbox{.72\paperwidth}{\color{white}\large Uma análise temporal de hospitalizações por SRAG associadas ao vírus sincicial respiratório no Brasil.}\\[1cm]
+      \hspace{1.2cm}\color{white}\normalsize Thiago Paes \quad Joan Souza \quad Matheus Accioly \quad Isabelle Gagno\\[.25cm]
+      \hspace{1.2cm}\color{white}\normalsize Mestrado PUC-Rio \quad | \quad Professor Fernando Cyrino
+      \vfill
+    }%
+  }
+\end{frame}
+
+\begin{frame}{Problema proposto}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.58\textwidth}
+      \large Como antecipar a quantidade semanal de internações por VSR antes da chegada de uma onda sazonal?
+      \vspace{.45cm}
+      \begin{itemize}
+        \item O foco é previsão semanal, não explicação causal de todos os determinantes da doença.
+        \item O resultado deve apoiar planejamento de leitos pediátricos, equipes e insumos.
+        \item A avaliação precisa reproduzir as informações que estariam disponíveis na data de cada previsão.
+      \end{itemize}
+    \end{column}
+    \begin{column}{.38\textwidth}
+      \begin{block}{Unidade de análise}
+        Número semanal de internações confirmadas por VSR, observado por UF, região e Brasil.
+      \end{block}
+      \vspace{.2cm}
+      \textcolor{pucblue}{\large\textbf{Pergunta central}}\\[.1cm]
+      Previsões de 1, 4, 8 e 13 semanas podem antecipar a demanda melhor do que referências simples?
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Dados e recorte do estudo}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.47\textwidth}
+      \textcolor{pucblue}{\Large\textbf{4.679.012}}\\[-.1cm]
+      \small registros brutos de SRAG nos arquivos anuais do SIVEP-Gripe, de 2019 a 2026.\\[.55cm]
+      \textcolor{pucblue}{\Large\textbf{158.358}}\\[-.1cm]
+      \small notificações únicas no recorte final.\\[.55cm]
+      \textcolor{pucblue}{\Large\textbf{27 UFs + 5 regiões + Brasil}}\\[-.1cm]
+      \small níveis geográficos do painel semanal.
+    \end{column}
+    \begin{column}{.49\textwidth}
+      \begin{block}{Registro incluído no estudo}
+        \begin{enumerate}\small
+          \item SRAG com internação registrada.
+          \item Criança com idade inferior a dois anos.
+          \item VSR confirmado por PCR ou antígeno.
+          \item UF de residência válida.
+          \item Data de início dos sintomas disponível.
+        \end{enumerate}
+      \end{block}
+      \small Fonte: microdados públicos SIVEP-Gripe / OpenDataSUS. A data de referência temporal é o início dos sintomas.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Tratamento dos dados}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.23\textwidth}
+      \textcolor{pucblue}{\textbf{1. Verificação}}\\[.12cm]
+      \small Arquivos anuais, colunas, disponibilidade e consistência básica.
+    \end{column}
+    \begin{column}{.23\textwidth}
+      \textcolor{pucblue}{\textbf{2. Recorte}}\\[.12cm]
+      \small Idade, internação, confirmação de VSR, local e data.
+    \end{column}
+    \begin{column}{.23\textwidth}
+      \textcolor{pucblue}{\textbf{3. Duplicidades}}\\[.12cm]
+      \small Dois pares foram auditados e resolvidos por regra temporal documentada.
+    \end{column}
+    \begin{column}{.23\textwidth}
+      \textcolor{pucblue}{\textbf{4. Painel}}\\[.12cm]
+      \small Registros individuais agregados em contagens semanais por UF, região e Brasil.
+    \end{column}
+  \end{columns}
+  \vspace{.6cm}
+  \begin{block}{Semanas maduras}
+    Uma notificação pode chegar ao sistema após a semana de início dos sintomas. Adotamos 13 semanas de maturação para reduzir sub-registro temporário. O histórico de análise contém 395 semanas maduras; as 12 mais recentes não entram como verdade final da avaliação.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Série nacional e semanas maduras}
+  \begin{center}
+    \includegraphics[width=.91\textwidth,height=.70\textheight,keepaspectratio]{serie_temporal_brasil.png}
+  \end{center}
+  \vspace{-.25cm}
+  \scriptsize A linha de análise usa semanas maduras. Semanas recentes podem receber notificações e confirmações laboratoriais posteriores.
+\end{frame}
+
+\begin{frame}{Sazonalidade no Brasil e nas regiões}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.54\textwidth}
+      \includegraphics[width=\textwidth,height=.72\textheight,keepaspectratio]{sazonalidade_brasil_regioes.png}
+    \end{column}
+    \begin{column}{.42\textwidth}
+      \begin{itemize}
+        \item Picos nacionais entre as semanas epidemiológicas 11 e 19.
+        \item Sudeste e Centro-Oeste apresentam padrão relativamente mais precoce e concentrado.
+        \item Nordeste mostrou picos mais tardios em anos recentes.
+      \end{itemize}
+      \vspace{.25cm}
+      \small Sazonalidade significa repetição aproximada do ciclo anual. Não implica que todos os anos tenham o mesmo pico ou a mesma intensidade.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Diferenças entre Unidades da Federação}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.58\textwidth}
+      \includegraphics[width=\textwidth,height=.70\textheight,keepaspectratio]{ufs_volume_intermitencia.png}
+    \end{column}
+    \begin{column}{.38\textwidth}
+      \begin{itemize}
+        \item Sudeste concentra 42,9\% dos casos maduros.
+        \item Treze UFs têm mais de 50\% das semanas maduras sem caso.
+        \item São Paulo possui alto volume e baixa intermitência; outras UFs são esparsas.
+      \end{itemize}
+      \vspace{.2cm}
+      \small Consequência: não é razoável pressupor o mesmo desempenho de um modelo local em todas as unidades.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Dependência temporal e ciclo anual}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.59\textwidth}
+      \includegraphics[width=\textwidth,height=.70\textheight,keepaspectratio]{acf_brasil_regioes.png}
+    \end{column}
+    \begin{column}{.37\textwidth}
+      \begin{itemize}
+        \item Autocorrelação de uma semana: 0,987 no Brasil.
+        \item Autocorrelação em 52 e 53 semanas: 0,845 e 0,874.
+        \item Correlação negativa perto de 26 semanas, coerente com a oposição entre período de pico e baixa.
+      \end{itemize}
+      \vspace{.2cm}
+      \small Esses resultados orientam os modelos candidatos, mas não escolhem o modelo vencedor antes da validação.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Nível e variabilidade entre temporadas}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.58\textwidth}
+      \includegraphics[width=\textwidth,height=.70\textheight,keepaspectratio]{variabilidade_movel_13s_brasil_regioes.png}
+    \end{column}
+    \begin{column}{.38\textwidth}
+      \begin{itemize}
+        \item Média semanal no Brasil: 287,9 em 2022 e 829,8 em 2025.
+        \item Desvio-padrão semanal: 173,7 em 2022 e 912,3 em 2025.
+        \item Períodos de maior nível também apresentaram maior oscilação.
+      \end{itemize}
+      \vspace{.2cm}
+      \small A série observada mudou de nível e variabilidade. O estudo não atribui essas mudanças a uma causa única.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Referências e modelos candidatos}
+  \begin{block}{Referência sazonal obrigatória}
+    \[
+      \widehat{y}_{t+h} = y_{t+h-52}
+    \]
+    A previsão usa a semana epidemiológica equivalente da temporada anterior. Um modelo complexo precisa superar essa referência de modo consistente.
+  \end{block}
+  \vspace{.35cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.23\textwidth}\textcolor{pucblue}{\textbf{Ingênuo}}\\ \small Mantém o último valor observado.\end{column}
+    \begin{column}{.23\textwidth}\textcolor{pucblue}{\textbf{ETS / Holt-Winters}}\\ \small Representa nível, tendência e sazonalidade.\end{column}
+    \begin{column}{.23\textwidth}\textcolor{pucblue}{\textbf{SARIMA}}\\ \small Representa dependência temporal e sazonal.\end{column}
+    \begin{column}{.23\textwidth}\textcolor{pucblue}{\textbf{Hierárquico}}\\ \small Busca coerência entre UF, região e Brasil.\end{column}
+  \end{columns}
+  \vspace{.5cm}
+  \small Regressão dinâmica será considerada somente se covariáveis externas tiverem qualidade e estiverem disponíveis na data da previsão.
+\end{frame}
+
+\begin{frame}{Validação temporal}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.56\textwidth}
+      \includegraphics[width=\textwidth,height=.69\textheight,keepaspectratio]{calendario_validacao_brasil.png}
+    \end{column}
+    \begin{column}{.40\textwidth}
+      \begin{itemize}
+        \item 58 cortes por série.
+        \item Treino inicial de 156 semanas, aproximadamente três anos.
+        \item Janela de treino expansiva.
+        \item Horizontes de 1, 4, 8 e 13 semanas.
+      \end{itemize}
+      \vspace{.25cm}
+      \small Cada corte simula uma data histórica. O modelo vê somente o passado e depois é comparado ao valor realmente observado.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Métricas de avaliação}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.31\textwidth}
+      \textcolor{pucblue}{\Large\textbf{MAE}}\\[.1cm]
+      \small Erro absoluto médio. Informa, em média, quantos casos a previsão erra.
+    \end{column}
+    \begin{column}{.31\textwidth}
+      \textcolor{pucblue}{\Large\textbf{RMSE}}\\[.1cm]
+      \small Dá peso maior a erros grandes, especialmente relevantes durante picos.
+    \end{column}
+    \begin{column}{.31\textwidth}
+      \textcolor{pucblue}{\Large\textbf{MASE}}\\[.1cm]
+      \small Escala o erro por uma referência e permite comparar séries de magnitudes distintas.
+    \end{column}
+  \end{columns}
+  \vspace{.8cm}
+  \begin{block}{Decisão metodológica}
+    As métricas serão calculadas separadamente por horizonte. MAPE não será métrica principal porque várias UFs possuem semanas com zero caso.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Próxima etapa}
+  \begin{center}
+    {\Large\bfseries A base está tratada, a exploração está concluída e o protocolo de validação está definido.}\\[.7cm]
+    \begin{columns}[T,onlytextwidth]
+      \begin{column}{.44\textwidth}
+        \begin{block}{O que já sabemos}
+          \small Sazonalidade anual, dependência de curto prazo, diferenças regionais, intermitência em parte das UFs e mudança de nível entre temporadas.
+        \end{block}
+      \end{column}
+      \begin{column}{.44\textwidth}
+        \begin{block}{O que será demonstrado}
+          \small Quais modelos reduzem os erros frente ao ingênuo sazonal em cada horizonte e nível geográfico.
+        \end{block}
+      \end{column}
+    \end{columns}
+    \vfill
+    \textcolor{pucblue}{\large\textbf{Obrigado.}}
+  \end{center}
+\end{frame}
+
+\end{document}
