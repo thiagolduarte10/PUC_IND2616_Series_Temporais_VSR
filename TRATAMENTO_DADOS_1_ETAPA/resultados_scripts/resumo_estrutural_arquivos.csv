@@ -1,0 +1,9 @@
+ano,arquivo,linhas,colunas,grupos_de_linhas,tamanho_mb,gerado_por
+2019,INFLUD19-23-03-2026.parquet,48941,194,1,3.29,parquet-mr version 1.13.1 (build 21c9b9a53840b4e1f88bf3e61dd067d0a0dd094d)
+2020,INFLUD20-23-03-2026.parquet,1206920,194,1,83.11,parquet-mr version 1.13.1 (build 21c9b9a53840b4e1f88bf3e61dd067d0a0dd094d)
+2021,INFLUD21-23-03-2026.parquet,1745672,194,1,121.14,parquet-mr version 1.13.1 (build 21c9b9a53840b4e1f88bf3e61dd067d0a0dd094d)
+2022,INFLUD22-23-03-2026.parquet,560577,194,1,41.72,parquet-mr version 1.13.1 (build 21c9b9a53840b4e1f88bf3e61dd067d0a0dd094d)
+2023,INFLUD23-23-03-2026.parquet,279453,194,1,21.1,parquet-mr version 1.13.1 (build 21c9b9a53840b4e1f88bf3e61dd067d0a0dd094d)
+2024,INFLUD24-23-03-2026.parquet,267986,194,1,20.24,parquet-mr version 1.13.1 (build 21c9b9a53840b4e1f88bf3e61dd067d0a0dd094d)
+2025,INFLUD25-19-10-2026.parquet,336439,194,1,25.59,parquet-mr version 1.13.1 (build 21c9b9a53840b4e1f88bf3e61dd067d0a0dd094d)
+2026,INFLUD26-19-10-2026.parquet,232824,194,1,17.48,parquet-mr version 1.13.1 (build 21c9b9a53840b4e1f88bf3e61dd067d0a0dd094d)

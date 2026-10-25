@@ -1,0 +1,3 @@
+﻿grupo_anonimo,arquivo_ano_selecionado,data_sintoma_selecionada,data_notificacao,data_digitacao,lag_notificacao_dias,lag_valido
+GRUPO_01,2025,2025-04-10,2025-04-10,2025-04-10,0,True
+GRUPO_02,2025,2025-04-02,2025-04-07,2025-04-14,5,True
