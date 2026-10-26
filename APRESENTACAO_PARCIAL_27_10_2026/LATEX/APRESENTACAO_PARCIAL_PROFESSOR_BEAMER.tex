@@ -1,43 +1,103 @@
 % Apresentação parcial — IND2616: Séries Temporais
-% Compilar duas vezes com pdflatex para atualizar a numeração de páginas.
+% Compilar duas vezes com pdflatex (numeração de páginas, barra de progresso e capa).
 \documentclass[10pt,aspectratio=169]{beamer}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[brazil]{babel}
+\usepackage{lmodern}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{amsmath}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc}
+\usepackage[most]{tcolorbox}
 
+% ---------------------------------------------------------------
+% Cores
+% ---------------------------------------------------------------
 \definecolor{pucnavy}{RGB}{7,27,51}
 \definecolor{pucblue}{RGB}{18,100,163}
 \definecolor{puccyan}{RGB}{50,180,200}
 \definecolor{pucorange}{RGB}{246,160,65}
 \definecolor{pucgray}{RGB}{96,112,138}
+\definecolor{puclight}{RGB}{238,244,250}
 
+% ---------------------------------------------------------------
+% Aparência geral
+% ---------------------------------------------------------------
 \setbeamertemplate{navigation symbols}{}
+\setbeamersize{text margin left=1cm,text margin right=1cm}
 \setbeamercolor{structure}{fg=pucblue}
-\setbeamercolor{frametitle}{fg=pucnavy,bg=white}
-\setbeamerfont{frametitle}{series=\bfseries,size=\Large}
-\setbeamercolor{title}{fg=white}
-\setbeamercolor{subtitle}{fg=white}
-\setbeamercolor{author}{fg=white}
-\setbeamercolor{date}{fg=white}
 \setbeamercolor{normal text}{fg=pucnavy,bg=white}
 \setbeamercolor{alerted text}{fg=red!70!black}
+\setbeamercolor{frametitle}{fg=pucnavy}
+\setbeamerfont{frametitle}{series=\bfseries,size=\Large}
+\setbeamertemplate{blocks}[rounded][shadow=false]
 \setbeamercolor{block title}{fg=white,bg=pucblue}
-\setbeamercolor{block body}{fg=pucnavy,bg=blue!4}
-\setbeamertemplate{itemize item}{\color{pucorange}$\blacktriangleright$}
-\setbeamertemplate{footline}{%
-  \leavevmode\hbox{%
-  \begin{beamercolorbox}[wd=.78\paperwidth,ht=2.8ex,dp=1.2ex,leftskip=1.5em]{author in head/foot}%
-    \color{pucgray}\scriptsize IND2616: Séries Temporais \quad | \quad PUC-Rio
-  \end{beamercolorbox}%
-  \begin{beamercolorbox}[wd=.22\paperwidth,ht=2.8ex,dp=1.2ex,rightskip=1.5em plus1fil]{date in head/foot}%
-    \color{pucgray}\scriptsize\insertframenumber/\inserttotalframenumber
-  \end{beamercolorbox}}%
+\setbeamercolor{block body}{fg=pucnavy,bg=puclight}
+\setbeamertemplate{itemize item}{\color{pucorange}\small$\blacktriangleright$}
+\setbeamertemplate{enumerate item}{\color{pucblue}\bfseries\insertenumlabel.}
+\setlength{\leftmargini}{1.2em}
+
+% Título do frame com marcador laranja e filete
+\setbeamertemplate{frametitle}{%
+  \vskip.3cm
+  \begin{beamercolorbox}[wd=\paperwidth,leftskip=1cm,rightskip=1cm]{frametitle}
+    \usebeamerfont{frametitle}%
+    {\color{pucorange}\rule[-.2em]{3pt}{1.1em}}\hspace{.3cm}\insertframetitle
+  \end{beamercolorbox}
+  \vskip.1cm
+  \begin{beamercolorbox}[wd=\paperwidth,leftskip=1cm,rightskip=1cm]{frametitle}
+    {\color{pucblue!20}\rule{\dimexpr\paperwidth-2cm\relax}{.6pt}}
+  \end{beamercolorbox}
+  \vskip.05cm
 }
+
+% Rodapé com barra de progresso
+\setbeamertemplate{footline}{%
+  \begin{tikzpicture}
+    \useasboundingbox (0,0) rectangle (\paperwidth,.7cm);
+    \fill[pucblue!10] (0,.66cm) rectangle (\paperwidth,.7cm);
+    \fill[pucorange] (0,.66cm) rectangle
+      ({\paperwidth*\insertframenumber/\inserttotalframenumber},.7cm);
+    \node[anchor=west,text=pucgray,font=\scriptsize] at (1cm,.3cm)
+      {IND2616: Séries Temporais \quad|\quad PUC-Rio};
+    \node[anchor=east,text=pucgray,font=\scriptsize] at (\paperwidth-1cm,.3cm)
+      {\insertframenumber\,/\,\inserttotalframenumber};
+  \end{tikzpicture}%
+}
+
+% ---------------------------------------------------------------
+% Componentes
+% ---------------------------------------------------------------
+% Cartão claro com borda lateral azul
+\newtcolorbox{cartao}[1][]{enhanced,colback=puclight,colframe=puclight,
+  boxrule=0pt,arc=2mm,left=8pt,right=8pt,top=6pt,bottom=6pt,
+  borderline west={3pt}{0pt}{pucblue},before upper=\raggedright,#1}
+
+% Caixa de mensagem principal (fundo escuro)
+\newtcolorbox{mensagem}[1][]{enhanced,colback=pucnavy,colframe=pucnavy,
+  coltext=white,boxrule=0pt,arc=2mm,left=10pt,right=10pt,top=7pt,bottom=7pt,#1}
+
+% Número em destaque
+\newcommand{\numero}[3][\LARGE]{%
+  \begin{cartao}[top=4pt,bottom=4pt]
+    {\color{pucblue}#1\bfseries #2}\par\vspace{1pt}
+    {\footnotesize #3}
+  \end{cartao}}
+
+% Etiqueta arredondada
+\newcommand{\pill}[2][pucorange]{%
+  \tikz[baseline=(p.base)]\node[fill=#1,text=white,rounded corners=7pt,
+    inner xsep=5pt,inner ysep=2pt,font=\footnotesize\bfseries](p){#2};}
+
+% Rótulo de seção dentro do slide
+\newcommand{\rotulo}[1]{{\color{pucblue}\small\bfseries\MakeUppercase{#1}}\par\vspace{3pt}}
+
+% Nota de rodapé do slide
+\newcommand{\nota}[1]{{\color{pucgray}\scriptsize #1}}
 
 \graphicspath{{figuras/}}
 
@@ -49,55 +109,73 @@
 
 \begin{document}
 
+% ===============================================================
+% Capa
+% ===============================================================
 \begin{frame}[plain]
-  \colorbox{pucnavy}{%
-    \parbox[c][\paperheight][c]{\paperwidth}{%
-      \vspace{.7cm}
-      \hspace{1.2cm}\textcolor{puccyan}{\Large\textbf{IND2616: Séries Temporais}}\\[1.0cm]
-      \hspace{1.2cm}\parbox{.78\paperwidth}{\color{white}\fontsize{30}{35}\selectfont\bfseries Previsão de internações por VSR em crianças menores de dois anos}\\[.5cm]
-      \hspace{1.2cm}\parbox{.72\paperwidth}{\color{white}\large Uma análise temporal de hospitalizações por SRAG associadas ao vírus sincicial respiratório no Brasil.}\\[1cm]
-      \hspace{1.2cm}\color{white}\normalsize Thiago Paes \quad Joan Souza \quad Matheus Accioly \quad Isabelle Gagno\\[.25cm]
-      \hspace{1.2cm}\color{white}\normalsize Mestrado PUC-Rio \quad | \quad Professor Fernando Cyrino
-      \vfill
-    }%
-  }
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[pucnavy] (current page.south west) rectangle (current page.north east);
+    \fill[pucblue,opacity=.35] ([xshift=-.6cm,yshift=.4cm]current page.south east) circle (4.2cm);
+    \fill[puccyan,opacity=.22] ([xshift=-2.6cm,yshift=-.6cm]current page.south east) circle (2.4cm);
+    \fill[pucorange] (current page.north west) rectangle ([xshift=.25cm]current page.south west);
+    \node[anchor=north west,text width=11.3cm,align=left,inner sep=0pt]
+      at ([xshift=1.4cm,yshift=-1cm]current page.north west) {%
+      {\color{puccyan}\large\bfseries IND2616: Séries Temporais}\par\vspace{.6cm}
+      {\color{white}\fontsize{25}{30}\selectfont\bfseries
+        Previsão de internações por VSR em crianças menores de dois anos\par}
+      \vspace{.4cm}
+      {\color{white!78!pucnavy}\large Uma análise temporal de hospitalizações por SRAG
+        associadas ao vírus sincicial respiratório no Brasil.\par}
+      \vspace{.45cm}
+      {\color{pucorange}\rule{2.2cm}{2pt}}\par\vspace{.3cm}
+      {\color{white}\normalsize Thiago Paes \quad Joan Souza \quad Matheus Accioly \quad Isabelle Gagno\par}
+      \vspace{.15cm}
+      {\color{white!65!pucnavy}\small Mestrado PUC-Rio \quad|\quad Prof. Fernando Cyrino
+        \quad|\quad Outubro de 2026\par}
+    };
+  \end{tikzpicture}
 \end{frame}
 
+% ===============================================================
 \begin{frame}{Problema proposto}
   \begin{columns}[T,onlytextwidth]
-    \begin{column}{.58\textwidth}
-      \large Como antecipar a quantidade semanal de internações por VSR antes da chegada de uma onda sazonal?
-      \vspace{.45cm}
-      \begin{itemize}
+    \begin{column}{.57\textwidth}
+      \begin{mensagem}
+        \large Como antecipar a quantidade semanal de internações por VSR
+        antes da chegada de uma onda sazonal?
+      \end{mensagem}
+      \vspace{.2cm}
+      \begin{itemize}\setlength{\itemsep}{3pt}
         \item O foco é previsão semanal, não explicação causal de todos os determinantes da doença.
         \item O resultado deve apoiar planejamento de leitos pediátricos, equipes e insumos.
         \item A avaliação precisa reproduzir as informações que estariam disponíveis na data de cada previsão.
       \end{itemize}
     \end{column}
     \begin{column}{.38\textwidth}
-      \begin{block}{Unidade de análise}
-        Número semanal de internações confirmadas por VSR, observado por UF, região e Brasil.
-      \end{block}
-      \vspace{.2cm}
-      \textcolor{pucblue}{\large\textbf{Pergunta central}}\\[.1cm]
-      Previsões de 1, 4, 8 e 13 semanas podem antecipar a demanda melhor do que referências simples?
+      \begin{cartao}
+        \rotulo{Unidade de análise}
+        \small Número semanal de internações confirmadas por VSR, observado por UF, região e Brasil.
+      \end{cartao}
+      \vspace{.15cm}
+      \begin{cartao}[borderline west={3pt}{0pt}{pucorange}]
+        \rotulo{Pergunta central}
+        \small Previsões de 1, 4, 8 e 13 semanas podem antecipar a demanda melhor do que referências simples?
+      \end{cartao}
     \end{column}
   \end{columns}
 \end{frame}
 
+% ===============================================================
 \begin{frame}{Dados e recorte do estudo}
   \begin{columns}[T,onlytextwidth]
-    \begin{column}{.47\textwidth}
-      \textcolor{pucblue}{\Large\textbf{4.679.012}}\\[-.1cm]
-      \small registros brutos de SRAG nos arquivos anuais do SIVEP-Gripe, de 2019 a 2026.\\[.55cm]
-      \textcolor{pucblue}{\Large\textbf{158.358}}\\[-.1cm]
-      \small notificações únicas no recorte final.\\[.55cm]
-      \textcolor{pucblue}{\Large\textbf{27 UFs + 5 regiões + Brasil}}\\[-.1cm]
-      \small níveis geográficos do painel semanal.
+    \begin{column}{.44\textwidth}
+      \numero{4.679.012}{registros brutos de SRAG nos arquivos anuais do SIVEP-Gripe, de 2019 a 2026.}
+      \numero{158.358}{notificações únicas no recorte final.}
+      \numero{27 + 5 + 1}{UFs, regiões e Brasil: níveis geográficos do painel semanal.}
     \end{column}
-    \begin{column}{.49\textwidth}
+    \begin{column}{.52\textwidth}
       \begin{block}{Registro incluído no estudo}
-        \begin{enumerate}\small
+        \begin{enumerate}\small\setlength{\itemsep}{3pt}
           \item SRAG com internação registrada.
           \item Criança com idade inferior a dois anos.
           \item VSR confirmado por PCR ou antígeno.
@@ -105,187 +183,305 @@
           \item Data de início dos sintomas disponível.
         \end{enumerate}
       \end{block}
-      \small Fonte: microdados públicos SIVEP-Gripe / OpenDataSUS. A data de referência temporal é o início dos sintomas.
+      \vspace{.15cm}
+      \nota{Fonte: microdados públicos SIVEP-Gripe / OpenDataSUS.
+        A data de referência temporal é o início dos sintomas.}
     \end{column}
   \end{columns}
 \end{frame}
 
+% ===============================================================
 \begin{frame}{Tratamento dos dados}
+  \begin{center}
+  \begin{tikzpicture}[
+      etapa/.style={fill=puclight,rounded corners=2mm,text width=2.5cm,anchor=north west,
+        minimum height=1.85cm,align=left,inner sep=8pt,text=pucnavy},
+      num/.style={circle,fill=pucblue,text=white,font=\small\bfseries,
+        minimum size=.6cm,inner sep=0pt},
+      seta/.style={-{Stealth[length=2.5mm]},very thick,pucorange}]
+    \node[etapa] (a) {{\color{pucblue}\bfseries Verificação}\\[4pt]\footnotesize Arquivos anuais, colunas, disponibilidade e consistência básica.};
+    \node[etapa] at ([xshift=.4cm]a.north east) (b) {{\color{pucblue}\bfseries Recorte}\\[4pt]\footnotesize Idade, internação, confirmação de VSR, local e data.};
+    \node[etapa] at ([xshift=.4cm]b.north east) (c) {{\color{pucblue}\bfseries Duplicidades}\\[4pt]\footnotesize Dois pares foram auditados e resolvidos por regra temporal documentada.};
+    \node[etapa] at ([xshift=.4cm]c.north east) (d) {{\color{pucblue}\bfseries Painel}\\[4pt]\footnotesize Registros individuais agregados em contagens semanais por UF, região e Brasil.};
+    \foreach \n/\i in {a/1,b/2,c/3,d/4}
+      \node[num] at (\n.north west) {\i};
+    \foreach \x/\y in {a/b,b/c,c/d}
+      \draw[seta] (\x.east |- 0,-1cm) -- (\y.west |- 0,-1cm);
+  \end{tikzpicture}
+  \end{center}
+  \vspace{-.15cm}
   \begin{columns}[T,onlytextwidth]
-    \begin{column}{.23\textwidth}
-      \textcolor{pucblue}{\textbf{1. Verificação}}\\[.12cm]
-      \small Arquivos anuais, colunas, disponibilidade e consistência básica.
+    \begin{column}{.68\textwidth}
+      \begin{cartao}[borderline west={3pt}{0pt}{pucorange}]
+        \rotulo{Semanas maduras}
+        \footnotesize Uma notificação pode chegar ao sistema após a semana de início dos sintomas.
+        Adotamos 13 semanas de maturação para reduzir sub-registro temporário.
+        As 12 semanas mais recentes não entram como verdade final da avaliação.
+      \end{cartao}
     \end{column}
-    \begin{column}{.23\textwidth}
-      \textcolor{pucblue}{\textbf{2. Recorte}}\\[.12cm]
-      \small Idade, internação, confirmação de VSR, local e data.
-    \end{column}
-    \begin{column}{.23\textwidth}
-      \textcolor{pucblue}{\textbf{3. Duplicidades}}\\[.12cm]
-      \small Dois pares foram auditados e resolvidos por regra temporal documentada.
-    \end{column}
-    \begin{column}{.23\textwidth}
-      \textcolor{pucblue}{\textbf{4. Painel}}\\[.12cm]
-      \small Registros individuais agregados em contagens semanais por UF, região e Brasil.
+    \begin{column}{.28\textwidth}
+      \begin{mensagem}[halign=center]
+        {\huge\bfseries 395}\par\vspace{2pt}
+        {\small semanas maduras no histórico de análise}
+      \end{mensagem}
     \end{column}
   \end{columns}
-  \vspace{.6cm}
-  \begin{block}{Semanas maduras}
-    Uma notificação pode chegar ao sistema após a semana de início dos sintomas. Adotamos 13 semanas de maturação para reduzir sub-registro temporário. O histórico de análise contém 395 semanas maduras; as 12 mais recentes não entram como verdade final da avaliação.
-  \end{block}
 \end{frame}
 
+% ===============================================================
 \begin{frame}{Série nacional e semanas maduras}
   \begin{center}
-    \includegraphics[width=.91\textwidth,height=.70\textheight,keepaspectratio]{serie_temporal_brasil.png}
+    \includegraphics[width=.9\textwidth,height=.64\textheight,keepaspectratio]{serie_temporal_brasil.png}
   \end{center}
-  \vspace{-.25cm}
-  \scriptsize A linha de análise usa semanas maduras. Semanas recentes podem receber notificações e confirmações laboratoriais posteriores.
+  \vspace{-.4cm}
+  \begin{center}
+    \nota{A linha de análise usa semanas maduras. Semanas recentes podem receber
+      notificações e confirmações laboratoriais posteriores.}
+  \end{center}
 \end{frame}
 
+% ===============================================================
 \begin{frame}{Sazonalidade no Brasil e nas regiões}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{.54\textwidth}
-      \includegraphics[width=\textwidth,height=.72\textheight,keepaspectratio]{sazonalidade_brasil_regioes.png}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{.56\textwidth}
+      \includegraphics[width=\textwidth,height=.68\textheight,keepaspectratio]{sazonalidade_brasil_regioes.png}
     \end{column}
-    \begin{column}{.42\textwidth}
-      \begin{itemize}
+    \begin{column}{.40\textwidth}
+      \begin{itemize}\setlength{\itemsep}{5pt}
         \item Picos nacionais entre as semanas epidemiológicas 11 e 19.
         \item Sudeste e Centro-Oeste apresentam padrão relativamente mais precoce e concentrado.
         \item Nordeste mostrou picos mais tardios em anos recentes.
       \end{itemize}
       \vspace{.25cm}
-      \small Sazonalidade significa repetição aproximada do ciclo anual. Não implica que todos os anos tenham o mesmo pico ou a mesma intensidade.
+      \begin{cartao}
+        \footnotesize Sazonalidade significa repetição aproximada do ciclo anual.
+        Não implica que todos os anos tenham o mesmo pico ou a mesma intensidade.
+      \end{cartao}
     \end{column}
   \end{columns}
 \end{frame}
 
+% ===============================================================
 \begin{frame}{Diferenças entre Unidades da Federação}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{.58\textwidth}
-      \includegraphics[width=\textwidth,height=.70\textheight,keepaspectratio]{ufs_volume_intermitencia.png}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{.56\textwidth}
+      \includegraphics[width=\textwidth,height=.68\textheight,keepaspectratio]{ufs_volume_intermitencia.png}
     \end{column}
-    \begin{column}{.38\textwidth}
+    \begin{column}{.40\textwidth}
+      \begin{columns}[T,onlytextwidth]
+        \begin{column}{.48\textwidth}
+          \numero[\Large]{42,9\%}{dos casos maduros no Sudeste}
+        \end{column}
+        \begin{column}{.48\textwidth}
+          \numero[\Large]{13 UFs}{com mais de 50\% das semanas sem caso}
+        \end{column}
+      \end{columns}
+      \vspace{.05cm}
       \begin{itemize}
-        \item Sudeste concentra 42,9\% dos casos maduros.
-        \item Treze UFs têm mais de 50\% das semanas maduras sem caso.
         \item São Paulo possui alto volume e baixa intermitência; outras UFs são esparsas.
       \end{itemize}
-      \vspace{.2cm}
-      \small Consequência: não é razoável pressupor o mesmo desempenho de um modelo local em todas as unidades.
+      \vspace{.05cm}
+      \begin{mensagem}[top=5pt,bottom=5pt]
+        \footnotesize\textbf{Consequência:} não é razoável pressupor o mesmo desempenho
+        de um modelo local em todas as unidades.
+      \end{mensagem}
     \end{column}
   \end{columns}
 \end{frame}
 
+% ===============================================================
 \begin{frame}{Dependência temporal e ciclo anual}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{.59\textwidth}
-      \includegraphics[width=\textwidth,height=.70\textheight,keepaspectratio]{acf_brasil_regioes.png}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{.56\textwidth}
+      \includegraphics[width=\textwidth,height=.68\textheight,keepaspectratio]{acf_brasil_regioes.png}
     \end{column}
-    \begin{column}{.37\textwidth}
+    \begin{column}{.40\textwidth}
+      \rotulo{Autocorrelação no Brasil}
+      \begin{tabular}{@{}lr@{}}
+        \toprule
+        Defasagem & ACF \\
+        \midrule
+        1 semana   & 0,987 \\
+        52 semanas & 0,845 \\
+        53 semanas & 0,874 \\
+        \bottomrule
+      \end{tabular}
+      \vspace{.3cm}
       \begin{itemize}
-        \item Autocorrelação de uma semana: 0,987 no Brasil.
-        \item Autocorrelação em 52 e 53 semanas: 0,845 e 0,874.
         \item Correlação negativa perto de 26 semanas, coerente com a oposição entre período de pico e baixa.
       \end{itemize}
       \vspace{.2cm}
-      \small Esses resultados orientam os modelos candidatos, mas não escolhem o modelo vencedor antes da validação.
+      \begin{cartao}
+        \footnotesize Esses resultados orientam os modelos candidatos, mas não escolhem
+        o modelo vencedor antes da validação.
+      \end{cartao}
     \end{column}
   \end{columns}
 \end{frame}
 
+% ===============================================================
 \begin{frame}{Nível e variabilidade entre temporadas}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{.58\textwidth}
-      \includegraphics[width=\textwidth,height=.70\textheight,keepaspectratio]{variabilidade_movel_13s_brasil_regioes.png}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{.56\textwidth}
+      \includegraphics[width=\textwidth,height=.68\textheight,keepaspectratio]{variabilidade_movel_13s_brasil_regioes.png}
     \end{column}
-    \begin{column}{.38\textwidth}
+    \begin{column}{.40\textwidth}
+      \rotulo{Brasil, por semana}
+      \begin{tabular}{@{}lrr@{}}
+        \toprule
+        & 2022 & 2025 \\
+        \midrule
+        Média         & 287,9 & 829,8 \\
+        Desvio-padrão & 173,7 & 912,3 \\
+        \bottomrule
+      \end{tabular}
+      \vspace{.3cm}
       \begin{itemize}
-        \item Média semanal no Brasil: 287,9 em 2022 e 829,8 em 2025.
-        \item Desvio-padrão semanal: 173,7 em 2022 e 912,3 em 2025.
         \item Períodos de maior nível também apresentaram maior oscilação.
       \end{itemize}
       \vspace{.2cm}
-      \small A série observada mudou de nível e variabilidade. O estudo não atribui essas mudanças a uma causa única.
+      \begin{cartao}
+        \footnotesize A série observada mudou de nível e variabilidade. O estudo não
+        atribui essas mudanças a uma causa única.
+      \end{cartao}
     \end{column}
   \end{columns}
 \end{frame}
 
+% ===============================================================
 \begin{frame}{Referências e modelos candidatos}
-  \begin{block}{Referência sazonal obrigatória}
-    \[
-      \widehat{y}_{t+h} = y_{t+h-52}
-    \]
-    A previsão usa a semana epidemiológica equivalente da temporada anterior. Um modelo complexo precisa superar essa referência de modo consistente.
-  \end{block}
-  \vspace{.35cm}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{.23\textwidth}\textcolor{pucblue}{\textbf{Ingênuo}}\\ \small Mantém o último valor observado.\end{column}
-    \begin{column}{.23\textwidth}\textcolor{pucblue}{\textbf{ETS / Holt-Winters}}\\ \small Representa nível, tendência e sazonalidade.\end{column}
-    \begin{column}{.23\textwidth}\textcolor{pucblue}{\textbf{SARIMA}}\\ \small Representa dependência temporal e sazonal.\end{column}
-    \begin{column}{.23\textwidth}\textcolor{pucblue}{\textbf{Hierárquico}}\\ \small Busca coerência entre UF, região e Brasil.\end{column}
-  \end{columns}
-  \vspace{.5cm}
-  \small Regressão dinâmica será considerada somente se covariáveis externas tiverem qualidade e estiverem disponíveis na data da previsão.
-\end{frame}
-
-\begin{frame}{Validação temporal}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{.56\textwidth}
-      \includegraphics[width=\textwidth,height=.69\textheight,keepaspectratio]{calendario_validacao_brasil.png}
-    \end{column}
-    \begin{column}{.40\textwidth}
-      \begin{itemize}
-        \item 58 cortes por série.
-        \item Treino inicial de 156 semanas, aproximadamente três anos.
-        \item Janela de treino expansiva.
-        \item Horizontes de 1, 4, 8 e 13 semanas.
-      \end{itemize}
-      \vspace{.25cm}
-      \small Cada corte simula uma data histórica. O modelo vê somente o passado e depois é comparado ao valor realmente observado.
-    \end{column}
-  \end{columns}
-\end{frame}
-
-\begin{frame}{Métricas de avaliação}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{.31\textwidth}
-      \textcolor{pucblue}{\Large\textbf{MAE}}\\[.1cm]
-      \small Erro absoluto médio. Informa, em média, quantos casos a previsão erra.
-    \end{column}
-    \begin{column}{.31\textwidth}
-      \textcolor{pucblue}{\Large\textbf{RMSE}}\\[.1cm]
-      \small Dá peso maior a erros grandes, especialmente relevantes durante picos.
-    \end{column}
-    \begin{column}{.31\textwidth}
-      \textcolor{pucblue}{\Large\textbf{MASE}}\\[.1cm]
-      \small Escala o erro por uma referência e permite comparar séries de magnitudes distintas.
-    \end{column}
-  \end{columns}
-  \vspace{.8cm}
-  \begin{block}{Decisão metodológica}
-    As métricas serão calculadas separadamente por horizonte. MAPE não será métrica principal porque várias UFs possuem semanas com zero caso.
-  \end{block}
-\end{frame}
-
-\begin{frame}{Próxima etapa}
-  \begin{center}
-    {\Large\bfseries A base está tratada, a exploração está concluída e o protocolo de validação está definido.}\\[.7cm]
-    \begin{columns}[T,onlytextwidth]
-      \begin{column}{.44\textwidth}
-        \begin{block}{O que já sabemos}
-          \small Sazonalidade anual, dependência de curto prazo, diferenças regionais, intermitência em parte das UFs e mudança de nível entre temporadas.
-        \end{block}
+  \begin{mensagem}
+    \begin{columns}[c,onlytextwidth]
+      \begin{column}{.36\textwidth}
+        {\color{pucorange}\small\bfseries REFERÊNCIA SAZONAL OBRIGATÓRIA}\par\vspace{6pt}
+        {\Large $\widehat{y}_{t+h} = y_{t+h-52}$}
       \end{column}
-      \begin{column}{.44\textwidth}
-        \begin{block}{O que será demonstrado}
-          \small Quais modelos reduzem os erros frente ao ingênuo sazonal em cada horizonte e nível geográfico.
-        \end{block}
+      \begin{column}{.6\textwidth}
+        \small A previsão usa a semana epidemiológica equivalente da temporada anterior.
+        Um modelo complexo precisa superar essa referência de modo consistente.
       \end{column}
     \end{columns}
-    \vfill
-    \textcolor{pucblue}{\large\textbf{Obrigado.}}
+  \end{mensagem}
+  \vspace{.2cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.235\textwidth}
+      \begin{cartao}[height=2cm]
+        {\color{pucblue}\bfseries Ingênuo}\par\vspace{3pt}
+        \footnotesize Mantém o último valor observado.
+      \end{cartao}
+    \end{column}
+    \begin{column}{.235\textwidth}
+      \begin{cartao}[height=2cm]
+        {\color{pucblue}\bfseries ETS / Holt-Winters}\par\vspace{3pt}
+        \footnotesize Representa nível, tendência e sazonalidade.
+      \end{cartao}
+    \end{column}
+    \begin{column}{.235\textwidth}
+      \begin{cartao}[height=2cm]
+        {\color{pucblue}\bfseries SARIMA}\par\vspace{3pt}
+        \footnotesize Representa dependência temporal e sazonal.
+      \end{cartao}
+    \end{column}
+    \begin{column}{.235\textwidth}
+      \begin{cartao}[height=2cm]
+        {\color{pucblue}\bfseries Hierárquico}\par\vspace{3pt}
+        \footnotesize Busca coerência entre UF, região e Brasil.
+      \end{cartao}
+    \end{column}
+  \end{columns}
+  \vspace{.1cm}
+  \nota{Regressão dinâmica será considerada somente se covariáveis externas tiverem
+    qualidade e estiverem disponíveis na data da previsão.}
+\end{frame}
+
+% ===============================================================
+\begin{frame}{Validação temporal}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{.56\textwidth}
+      \includegraphics[width=\textwidth,height=.68\textheight,keepaspectratio]{calendario_validacao_brasil.png}
+    \end{column}
+    \begin{column}{.40\textwidth}
+      \begin{columns}[T,onlytextwidth]
+        \begin{column}{.48\textwidth}
+          \numero[\Large]{58}{cortes por série}
+        \end{column}
+        \begin{column}{.48\textwidth}
+          \numero[\Large]{156}{semanas de treino inicial}
+        \end{column}
+      \end{columns}
+      \vspace{.05cm}
+      \begin{itemize}
+        \item Treino inicial de cerca de três anos, janela expansiva.
+        \item Horizontes, em semanas: \pill{1}\,\pill{4}\,\pill{8}\,\pill{13}
+      \end{itemize}
+      \vspace{.05cm}
+      \begin{cartao}[top=4pt,bottom=4pt]
+        \footnotesize Cada corte simula uma data histórica. O modelo vê somente o passado
+        e depois é comparado ao valor realmente observado.
+      \end{cartao}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ===============================================================
+\begin{frame}{Métricas de avaliação}
+  \vspace{.2cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.315\textwidth}
+      \begin{cartao}[height=2.6cm]
+        {\color{pucblue}\LARGE\bfseries MAE}\par\vspace{4pt}
+        \small Erro absoluto médio. Informa, em média, quantos casos a previsão erra.
+      \end{cartao}
+    \end{column}
+    \begin{column}{.315\textwidth}
+      \begin{cartao}[height=2.6cm]
+        {\color{pucblue}\LARGE\bfseries RMSE}\par\vspace{4pt}
+        \small Dá peso maior a erros grandes, especialmente relevantes durante picos.
+      \end{cartao}
+    \end{column}
+    \begin{column}{.315\textwidth}
+      \begin{cartao}[height=2.6cm]
+        {\color{pucblue}\LARGE\bfseries MASE}\par\vspace{4pt}
+        \small Escala o erro por uma referência e permite comparar séries de magnitudes distintas.
+      \end{cartao}
+    \end{column}
+  \end{columns}
+  \vspace{.5cm}
+  \begin{mensagem}
+    {\color{pucorange}\small\bfseries DECISÃO METODOLÓGICA}\par\vspace{3pt}
+    As métricas serão calculadas separadamente por horizonte. MAPE não será métrica
+    principal porque várias UFs possuem semanas com zero caso.
+  \end{mensagem}
+\end{frame}
+
+% ===============================================================
+\begin{frame}{Próxima etapa}
+  \begin{center}
+    {\Large\bfseries A base está tratada, a exploração está concluída\\
+      e o protocolo de validação está definido.}
   \end{center}
+  \vspace{.3cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.48\textwidth}
+      \begin{cartao}[height=2.5cm]
+        \rotulo{O que já sabemos}
+        \small Sazonalidade anual, dependência de curto prazo, diferenças regionais,
+        intermitência em parte das UFs e mudança de nível entre temporadas.
+      \end{cartao}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{cartao}[height=2.5cm,borderline west={3pt}{0pt}{pucorange}]
+        \rotulo{O que será demonstrado}
+        \small Quais modelos reduzem os erros frente ao ingênuo sazonal em cada
+        horizonte e nível geográfico.
+      \end{cartao}
+    \end{column}
+  \end{columns}
+  \vfill
+  \begin{center}
+    {\color{pucblue}\LARGE\bfseries Obrigado.}
+  \end{center}
+  \vspace{.2cm}
 \end{frame}
 
 \end{document}
