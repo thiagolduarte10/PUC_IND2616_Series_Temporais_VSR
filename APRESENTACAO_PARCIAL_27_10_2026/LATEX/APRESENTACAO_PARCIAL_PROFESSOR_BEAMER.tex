@@ -5,33 +5,96 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[brazil]{babel}
+\usepackage{lmodern}
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc}
+\usepackage[most]{tcolorbox}
 
+% ---------------------------------------------------------------
+% Cores
+% ---------------------------------------------------------------
 \definecolor{pucnavy}{RGB}{7,27,51}
 \definecolor{pucblue}{RGB}{18,100,163}
 \definecolor{puccyan}{RGB}{50,180,200}
 \definecolor{pucorange}{RGB}{246,160,65}
 \definecolor{pucgray}{RGB}{96,112,138}
+\definecolor{puclight}{RGB}{238,244,250}
 
+% ---------------------------------------------------------------
+% Aparência geral
+% ---------------------------------------------------------------
 \setbeamertemplate{navigation symbols}{}
+\setbeamersize{text margin left=1cm,text margin right=1cm}
 \setbeamercolor{structure}{fg=pucblue}
 \setbeamercolor{frametitle}{fg=pucnavy,bg=white}
 \setbeamerfont{frametitle}{series=\bfseries,size=\Large}
 \setbeamercolor{normal text}{fg=pucnavy,bg=white}
 \setbeamercolor{block title}{fg=white,bg=pucblue}
-\setbeamercolor{block body}{fg=pucnavy,bg=blue!4}
-\setbeamertemplate{itemize item}{\color{pucorange}$\blacktriangleright$}
-\setbeamertemplate{footline}{%
-  \leavevmode\hbox{%
-  \begin{beamercolorbox}[wd=.78\paperwidth,ht=2.8ex,dp=1.2ex,leftskip=1.5em]{author in head/foot}%
-    \color{pucgray}\scriptsize IND2616: Séries Temporais \quad | \quad PUC-Rio
-  \end{beamercolorbox}%
-  \begin{beamercolorbox}[wd=.22\paperwidth,ht=2.8ex,dp=1.2ex,rightskip=1.5em plus1fil]{date in head/foot}%
-    \color{pucgray}\scriptsize\insertframenumber/\inserttotalframenumber
-  \end{beamercolorbox}}%
+\setbeamercolor{block body}{fg=pucnavy,bg=puclight}
+\setbeamertemplate{itemize item}{\color{pucorange}\small$\blacktriangleright$}
+\setbeamertemplate{enumerate item}{\color{pucblue}\bfseries\insertenumlabel.}
+\setlength{\leftmargini}{1.2em}
+
+% Título do frame com marcador laranja e filete
+\setbeamertemplate{frametitle}{%
+  \vskip.3cm
+  \begin{beamercolorbox}[wd=\paperwidth,leftskip=1cm,rightskip=1cm]{frametitle}
+    \usebeamerfont{frametitle}%
+    {\color{pucorange}\rule[-.2em]{3pt}{1.1em}}\hspace{.3cm}\insertframetitle
+  \end{beamercolorbox}
+  \vskip.1cm
+  \begin{beamercolorbox}[wd=\paperwidth,leftskip=1cm,rightskip=1cm]{frametitle}
+    {\color{pucblue!20}\rule{\dimexpr\paperwidth-2cm\relax}{.6pt}}
+  \end{beamercolorbox}
+  \vskip.05cm
 }
+
+% Rodapé com barra de progresso
+\setbeamertemplate{footline}{%
+  \begin{tikzpicture}
+    \useasboundingbox (0,0) rectangle (\paperwidth,.7cm);
+    \fill[pucblue!10] (0,.66cm) rectangle (\paperwidth,.7cm);
+    \fill[pucorange] (0,.66cm) rectangle
+      ({\paperwidth*\insertframenumber/\inserttotalframenumber},.7cm);
+    \node[anchor=west,text=pucgray,font=\scriptsize] at (1cm,.3cm)
+      {IND2616: Séries Temporais \quad|\quad PUC-Rio};
+    \node[anchor=east,text=pucgray,font=\scriptsize] at (\paperwidth-1cm,.3cm)
+      {\insertframenumber\,/\,\inserttotalframenumber};
+  \end{tikzpicture}%
+}
+
+% ---------------------------------------------------------------
+% Componentes
+% ---------------------------------------------------------------
+% Cartão claro com borda lateral azul
+\newtcolorbox{cartao}[1][]{enhanced,colback=puclight,colframe=puclight,
+  boxrule=0pt,arc=2mm,left=8pt,right=8pt,top=6pt,bottom=6pt,
+  borderline west={3pt}{0pt}{pucblue},before upper=\raggedright,#1}
+
+% Caixa de mensagem principal (fundo escuro)
+\newtcolorbox{mensagem}[1][]{enhanced,colback=pucnavy,colframe=pucnavy,
+  coltext=white,boxrule=0pt,arc=2mm,left=10pt,right=10pt,top=7pt,bottom=7pt,#1}
+
+% Número em destaque
+\newcommand{\numero}[3][\LARGE]{%
+  \begin{cartao}[top=4pt,bottom=4pt]
+    {\color{pucblue}#1\bfseries #2}\par\vspace{1pt}
+    {\footnotesize #3}
+  \end{cartao}}
+
+% Etiqueta arredondada
+\newcommand{\pill}[2][pucorange]{%
+  \tikz[baseline=(p.base)]\node[fill=#1,text=white,rounded corners=7pt,
+    inner xsep=5pt,inner ysep=2pt,font=\footnotesize\bfseries](p){#2};}
+
+% Rótulo de seção dentro do slide
+\newcommand{\rotulo}[1]{{\color{pucblue}\small\bfseries\MakeUppercase{#1}}\par\vspace{3pt}}
+
+% Nota de rodapé do slide
+\newcommand{\nota}[1]{{\color{pucgray}\scriptsize #1}}
 
 \graphicspath{{figuras/}}
 \title{Previsão de internações por VSR em crianças menores de dois anos}
@@ -42,18 +105,31 @@
 
 \begin{document}
 
+% ===============================================================
+% Capa
+% ===============================================================
 \begin{frame}[plain]
-  \colorbox{pucnavy}{%
-    \parbox[c][\paperheight][c]{\paperwidth}{%
-      \vspace{.7cm}
-      \hspace{1.2cm}\textcolor{puccyan}{\Large\textbf{IND2616: Séries Temporais}}\\[1.0cm]
-      \hspace{1.2cm}\parbox{.78\paperwidth}{\color{white}\fontsize{30}{35}\selectfont\bfseries Previsão de internações por VSR em crianças menores de dois anos}\\[.5cm]
-      \hspace{1.2cm}\parbox{.72\paperwidth}{\color{white}\large Uma análise temporal de hospitalizações por SRAG associadas ao vírus sincicial respiratório no Brasil.}\\[1cm]
-      \hspace{1.2cm}\color{white}\normalsize Thiago Paes \quad Joan Souza \quad Matheus Accioly \quad Isabelle Gagno\\[.25cm]
-      \hspace{1.2cm}\color{white}\normalsize Mestrado PUC-Rio \quad | \quad Professor Fernando Cyrino
-      \vfill
-    }%
-  }
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[pucnavy] (current page.south west) rectangle (current page.north east);
+    \fill[pucblue,opacity=.35] ([xshift=-.6cm,yshift=.4cm]current page.south east) circle (4.2cm);
+    \fill[puccyan,opacity=.22] ([xshift=-2.6cm,yshift=-.6cm]current page.south east) circle (2.4cm);
+    \fill[pucorange] (current page.north west) rectangle ([xshift=.25cm]current page.south west);
+    \node[anchor=north west,text width=11.3cm,align=left,inner sep=0pt]
+      at ([xshift=1.4cm,yshift=-1cm]current page.north west) {%
+      {\color{puccyan}\large\bfseries IND2616: Séries Temporais}\par\vspace{.6cm}
+      {\color{white}\fontsize{25}{30}\selectfont\bfseries
+        Previsão de internações por VSR em crianças menores de dois anos\par}
+      \vspace{.4cm}
+      {\color{white!78!pucnavy}\large Uma análise temporal de hospitalizações por SRAG
+        associadas ao vírus sincicial respiratório no Brasil.\par}
+      \vspace{.45cm}
+      {\color{pucorange}\rule{2.2cm}{2pt}}\par\vspace{.3cm}
+      {\color{white}\normalsize Thiago Paes \quad Joan Souza \quad Matheus Accioly \quad Isabelle Gagno\par}
+      \vspace{.15cm}
+      {\color{white!65!pucnavy}\small Mestrado PUC-Rio \quad|\quad Prof. Fernando Cyrino
+        \quad|\quad Outubro de 2026\par}
+    };
+  \end{tikzpicture}
 \end{frame}
 
 \begin{frame}{Problema e dados do estudo}
@@ -115,12 +191,23 @@
   \end{columns}
 \end{frame}
 
+% ===============================================================
 \begin{frame}{Nível e variabilidade entre temporadas}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{.58\textwidth}
       \includegraphics[width=\textwidth,height=.69\textheight,keepaspectratio]{variabilidade_movel_13s_brasil_regioes.png}
     \end{column}
-    \begin{column}{.38\textwidth}
+    \begin{column}{.40\textwidth}
+      \rotulo{Brasil, por semana}
+      \begin{tabular}{@{}lrr@{}}
+        \toprule
+        & 2022 & 2025 \\
+        \midrule
+        Média         & 287,9 & 829,8 \\
+        Desvio-padrão & 173,7 & 912,3 \\
+        \bottomrule
+      \end{tabular}
+      \vspace{.3cm}
       \begin{itemize}
         \item Média semanal no Brasil: 287,9 em 2022 e 829,8 em 2025.
         \item Desvio-padrão semanal: 173,7 em 2022 e 912,3 em 2025.
