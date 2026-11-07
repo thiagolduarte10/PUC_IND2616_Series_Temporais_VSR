@@ -1,0 +1,4 @@
+modelo,tendencia,tendencia_amortecida,sazonalidade,periodo_sazonal,inicializacao
+ETS_SAZONAL_ADITIVO_HEURISTICO,,False,add,52,heuristic
+ETS_TENDENCIA_ADITIVA_HEURISTICO,add,False,add,52,heuristic
+ETS_TENDENCIA_AMORTECIDA_HEURISTICO,add,True,add,52,heuristic

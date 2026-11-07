@@ -1,0 +1,7 @@
+campo,tipo,ausentes,percentual_ausentes
+nivel,string,0,0.0
+unidade,string,0,0.0
+regiao,string,0,0.0
+data,datetime64[ns],0,0.0
+casos_vsr,float64,0,0.0
+semana_madura,bool,0,0.0

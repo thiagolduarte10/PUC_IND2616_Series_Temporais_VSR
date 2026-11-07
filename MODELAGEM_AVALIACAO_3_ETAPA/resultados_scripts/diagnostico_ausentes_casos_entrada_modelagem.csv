@@ -1,0 +1,7 @@
+nivel,semana_madura,linhas,casos_vsr_ausentes
+BRASIL,False,12,1
+BRASIL,True,395,0
+REGIAO,False,60,5
+REGIAO,True,1975,0
+UF,False,324,27
+UF,True,10665,0
