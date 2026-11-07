@@ -1,0 +1,3 @@
+modelo,ordem_nao_sazonal,ordem_sazonal,periodo_sazonal
+SARIMA_SAZONAL_MA,"(0, 0, 1)","(0, 1, 1, 52)",52
+SARIMA_MUDANCA_NIVEL,"(0, 1, 1)","(0, 1, 1, 52)",52
