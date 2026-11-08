@@ -125,21 +125,43 @@ O ETS com tendência aditiva não venceu nenhum horizonte agregado. Além disso,
 
 **Decisão.** A seleção passa a ser dependente do horizonte: ETS amortecido é a referência a superar em 1 e 4 semanas; ingênuo sazonal é a referência a superar em 8 e 13 semanas. O próximo modelo será SARIMA, avaliado no mesmo protocolo, antes de avançarmos à previsão hierárquica.
 
+## Etapa 25 — Modelos SARIMA com sazonalidade anual
+
+SARIMA foi introduzido para verificar se a dependência serial dos erros, combinada à sazonalidade anual, acrescentaria informação além das baselines e do ETS. O teste manteve as mesmas seis séries, 58 origens temporais, quatro horizontes e dados maduros usados nas etapas anteriores.
+
+Foram escolhidas duas especificações pequenas e previamente definidas, sem busca automática ampla de parâmetros. A primeira, `SARIMA(0,0,1)(0,1,1,52)`, acrescenta componentes de média móvel aos desvios em torno do padrão anual. A segunda, `SARIMA(0,1,1)(0,1,1,52)`, acrescenta também uma diferença não sazonal, para testar se a mudança recente de nível entre semanas melhoraria a previsão. A escolha parcimoniosa foi intencional: com 395 semanas por série e período sazonal de 52 semanas, uma grade extensa aumentaria custo computacional e risco de seleção excessivamente adaptada ao histórico.
+
+O ajuste foi executado com o mesmo protocolo de validação temporal e com auditoria de convergência em cada origem. Foram previstos 696 ajustes — 348 por especificação — e a execução no Colab levou aproximadamente quatro horas. Esse custo também é um resultado operacional relevante: um método para vigilância precisa ser não apenas preciso, mas viável de atualizar periodicamente.
+
+| Modelo | Ajustes convergentes | Cobertura para métricas | Previsões negativas corrigidas |
+|---|---:|---:|---:|
+| SARIMA sazonal MA | 284/348 (81,6%) | Insuficiente | 14 entre 1.136 previsões disponíveis |
+| SARIMA mudança de nível | 277/348 (79,6%) | Insuficiente | 26 entre 1.108 previsões disponíveis |
+
+As falhas não se concentraram somente nos cortes mais curtos. Elas ocorreram principalmente em treinos de 212 a 264 semanas e atingiram todas as seis séries. A auditoria registrou falhas de otimização por máxima verossimilhança e, em alguns cortes, insuficiência de observações para estimar parâmetros iniciais sazonais. Aumentar cegamente o número máximo de iterações não é uma resposta adequada, porque o custo já foi alto e o padrão se repetiu em ambas as especificações.
+
+![Previsões SARIMA no último corte temporal do Brasil](resultados_scripts/exemplo_previsoes_sarima_brasil.png)
+
+No último corte nacional, em 19/04/2026, o SARIMA sazonal previu 2.890 casos para quatro semanas, frente a 1.984 observados; o SARIMA com mudança de nível previu 1.494. Em 13 semanas, os valores previstos foram 1.079 e 223, contra 892 observados. O gráfico ilustra comportamentos diferentes, mas não é usado para selecionar modelo, pois um único corte não substitui a validação completa.
+
+**Decisão.** Os SARIMA testados não entram no ranking principal de MAE, RMSE e MASE, pois não produziram previsões nos mesmos 348 cortes das baselines e dos ETS. Os resultados serão preservados como tentativa auditada e poderão ser revisitados localmente, com uma especificação ainda mais simples, somente se isso for justificado. A prioridade seguinte passa a ser a previsão hierárquica, que responde diretamente à estrutura UF, região e Brasil e ao desafio das séries estaduais esparsas.
+
 ## Conclusões provisórias
 
 1. Há ganho preditivo de curto prazo ao combinar nível recente, tendência amortecida e sazonalidade.
 2. A sazonalidade anual é indispensável para previsões de dois e três meses.
 3. A tendência aditiva simples é instável do ponto de vista epidemiológico: além de piorar os erros longos, produz muitas previsões negativas antes do truncamento.
-4. Convergência numérica é necessária, mas não suficiente. Um modelo também precisa gerar previsões plausíveis e reduzir o erro fora da amostra.
-5. A escolha final pode ser horizonte-dependente, desde que essa regra seja definida com base na validação temporal e seja útil para planejamento hospitalar.
+4. Convergência numérica é necessária, mas não suficiente. Um modelo também precisa gerar previsões plausíveis, cobrir todos os cortes e reduzir o erro fora da amostra.
+5. O SARIMA avaliado apresentou cobertura insuficiente e alto custo computacional; por isso, não é candidato principal nesta configuração.
+6. A escolha final pode ser horizonte-dependente, desde que essa regra seja definida com base na validação temporal e seja útil para planejamento hospitalar.
 
 ## Próximos passos da modelagem
 
-1. Ajustar modelos SARIMA para Brasil e regiões usando o mesmo painel, calendário e horizontes.
-2. Comparar SARIMA com ETS amortecido, ETS sazonal e as duas baselines, por horizonte e por série.
-3. Manter somente os modelos que acrescentarem ganho mensurável, estabilidade e plausibilidade.
-4. Estender os candidatos selecionados às UFs.
-5. Gerar previsões-base em UF, região e Brasil e aplicar reconciliação hierárquica — bottom-up, top-down e MinT — para garantir coerência entre os níveis geográficos.
+1. Preparar o ambiente local de execução, evitando dependência de créditos do Colab para os experimentos posteriores.
+2. Estender a base de previsão para as 27 UFs, mantendo o mesmo calendário e a regra de maturidade.
+3. Gerar previsões-base em UF, região e Brasil, inicialmente com métodos robustos às séries esparsas.
+4. Aplicar e comparar reconciliação hierárquica — bottom-up, top-down e MinT, se a matriz de erros permitir — para garantir coerência entre os níveis geográficos.
+5. Manter somente métodos que acrescentarem ganho mensurável, estabilidade e plausibilidade epidemiológica.
 
 ## Arquivos de evidência
 
@@ -150,3 +172,4 @@ O ETS com tendência aditiva não venceu nenhum horizonte agregado. Além disso,
 - ETS inicial: `auditoria_ets.csv`, `auditoria_tentativas_ets.csv`, `resumo_convergencia_ets.csv`, `resumo_disponibilidade_ets.csv` e `exemplo_previsoes_ets_brasil.png`.
 - ETS heurístico: `auditoria_ets_heuristico.csv`, `auditoria_tentativas_ets_heuristico.csv`, `resumo_convergencia_ets_heuristico.csv`, `resumo_disponibilidade_ets_heuristico.csv`, `previsoes_ets_heuristico.csv` e `exemplo_previsoes_ets_heuristico_brasil.png`.
 - Comparação da Etapa 24: `controle_modelos_comparados.csv`, `erros_individuais_baselines_ets.csv`, `metricas_agregadas_baselines_ets.csv`, `ranking_modelos_baselines_ets.csv`, `diagnostico_correcoes_nao_negativas_ets.csv`, `comparacao_baselines_ets_metricas.png` e o arquivo de métricas por série da etapa 24.
+- SARIMA: `configuracoes_sarima.csv`, `controle_regularidade_series_sarima.csv`, `auditoria_sarima.csv`, `resumo_convergencia_sarima.csv`, `resumo_disponibilidade_sarima.csv`, `previsoes_sarima.csv` e `exemplo_previsoes_sarima_brasil.png`.
