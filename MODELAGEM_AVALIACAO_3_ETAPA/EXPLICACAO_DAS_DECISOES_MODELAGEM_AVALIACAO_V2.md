@@ -2,174 +2,242 @@
 
 ## Objetivo desta etapa
 
-Esta etapa transforma a base semanal madura e os achados da análise exploratória em previsões avaliadas fora da amostra. O objetivo não é escolher o modelo mais complexo, mas verificar se cada proposta reduz o erro em relação a referências simples, sem usar informação que ainda não existiria na data da previsão.
+Esta etapa transforma o painel semanal maduro e os achados exploratórios em previsões avaliadas fora da amostra. O objetivo não é escolher o modelo mais complexo: é identificar previsões úteis para antecipar internações por VSR, com comparação justa, reprodutível e compatível com a estrutura geográfica dos dados.
 
-A avaliação começa por Brasil e regiões, que possuem séries densas e contínuas. As Unidades da Federação serão incorporadas posteriormente, respeitando sua intermitência e a estrutura hierárquica UF, região e Brasil.
+Inicialmente, a avaliação foi feita para Brasil e cinco regiões, que possuem séries mais densas. Em seguida, a estrutura foi ampliada para as 27 Unidades da Federação (UFs), sem ignorar a intermitência de parte delas. Assim, a modelagem passa a responder a duas perguntas diferentes: qual modelo prevê melhor cada horizonte e como tornar previsões de UF, região e Brasil coerentes entre si.
+
+## Reprodução local e princípios de validação
+
+Os resultados documentados abaixo foram reproduzidos localmente em 08/11/2026, no diretório de execução separado do repositório: `/home/thiago/Series-Temporais-Trabalho/execucao_local_vsr`. A separação preserva o projeto versionado e, ao mesmo tempo, permite guardar os arquivos intermediários, auditorias e resultados pesados sem depender de créditos ou do armazenamento temporário do Colab.
+
+O ambiente local utilizou Python 3.13.18, pandas 3.1.1, pyarrow 26.0.1 e statsmodels 0.15.0. Os mesmos microdados congelados, a mesma regra de maturidade de 13 semanas e o mesmo calendário temporal foram usados em todos os modelos comparados.
+
+Os princípios adotados são os seguintes:
+
+1. Cada previsão usa somente informações disponíveis até sua data de origem.
+2. Todos os modelos de uma comparação recebem o mesmo painel, os mesmos cortes e os mesmos horizontes.
+3. A cobertura é requisito para entrar no ranking: não é adequado declarar vencedor um modelo avaliado em menos cortes que os demais.
+4. MAE e RMSE permanecem em número de casos; MASE permite comparar Brasil e regiões, que têm escalas muito distintas.
+5. Convergência, previsões negativas, viés e coerência territorial são diagnósticos tão importantes quanto o erro médio.
+6. A escolha pode variar por horizonte. Não há justificativa para exigir que um único modelo seja o melhor para uma, quatro, oito e treze semanas.
 
 ## Entrada adotada
 
 - Painel de origem: `painel_vsr_semanal_com_maturidade.parquet`.
-- Recorte atual: Brasil e cinco regiões, usando somente semanas maduras segundo o limiar de 13 semanas definido na etapa de tratamento.
-- Período disponível para modelagem: 30/12/2018 a 19/07/2026, com 395 semanas maduras por série.
-- Calendário de avaliação: 58 origens temporais por série, quatro horizontes de previsão e treino expansivo, definido na Etapa 19.
-- Unidade de previsão: número semanal de internações confirmadas por VSR em crianças menores de dois anos.
+- Unidade prevista: número semanal de internações por SRAG associadas ao VSR em crianças menores de dois anos.
+- Período maduro: 30/12/2018 a 19/07/2026.
+- Séries inicialmente modeladas: Brasil e cinco regiões.
+- Comprimento de cada série densa: 395 semanas maduras.
+- Calendário temporal: 58 origens por série e horizontes de 1, 4, 8 e 13 semanas.
 
-## Princípios adotados
-
-1. Todos os modelos recebem o mesmo painel maduro e o mesmo calendário de validação.
-2. Em cada origem temporal, o treino contém somente semanas até a origem; as semanas posteriores permanecem ocultas até a avaliação.
-3. As métricas são calculadas separadamente para os horizontes de 1, 4, 8 e 13 semanas.
-4. Referências simples são obrigatórias: maior complexidade só é útil se trouxer ganho preditivo mensurável.
-5. MAE e RMSE, expressos em casos, são acompanhados por MASE para tornar comparáveis Brasil e regiões, que possuem escalas distintas.
-6. Convergência numérica e plausibilidade epidemiológica são verificadas antes de interpretar o erro de um modelo.
+Em cada modelo não hierárquico, isso corresponde a 6 séries × 58 origens × 4 horizontes = 1.392 previsões. Esse número será usado como referência de cobertura.
 
 ## Etapa 20 — Preparação das entradas para previsão
 
-Uma comparação só é justa quando todos os modelos recebem exatamente a mesma série, com a mesma definição de maturidade e os mesmos alvos de avaliação. Por isso, antes das previsões, carregamos o painel semanal com maturidade e o calendário de validação temporal, padronizamos as colunas e selecionamos Brasil, regiões e semanas maduras.
+Esta etapa confirmou que o painel e o calendário de validação realmente representam o mesmo problema de previsão. O painel completo possui linhas recentes ainda não maduras; elas foram preservadas, mas não foram transformadas em zeros nem usadas no treino ou na avaliação. Isso evita tratar atraso de notificação como ausência de casos.
 
-A primeira checagem identificou ausências de `casos_vsr` no painel completo. Elas não foram preenchidas por zero e nem removidas automaticamente. O diagnóstico mostrou uma ausência em linha não madura do Brasil, cinco em linhas não maduras das regiões e 27 em linhas não maduras das UFs. Não há ausências entre as semanas maduras. Os registros recentes permanecem preservados no painel original, mas não entram em treino ou avaliação histórica.
+O recorte aprovado contém 2.370 linhas: seis séries e 395 semanas maduras por série. Não há duplicidade na chave `nível + unidade + semana`, casos negativos ou valores ausentes de `casos_vsr` no recorte de modelagem. O Brasil totaliza 155.304 casos maduros, exatamente a soma das cinco regiões.
 
-A entrada aprovada possui seis séries, 2.370 linhas e 395 semanas maduras por série. Não há duplicidades na chave `nível + unidade + data`, valores ausentes ou casos negativos nesse recorte. O Brasil possui 155.304 casos maduros, valor exatamente igual à soma das cinco regiões.
+Também foram verificados os 1.392 alvos do calendário. Todos estão presentes no painel maduro, possuem o indicador de maturidade verdadeiro e coincidem exatamente com o valor observado associado a cada data-alvo.
 
-Também foram verificados os 1.392 alvos do calendário — seis séries, 58 origens e quatro horizontes. Todos foram encontrados no painel maduro, têm indicador de maturidade verdadeiro e conferem com o valor observado do calendário; a maior diferença encontrada foi zero.
-
-**Decisão.** A entrada foi aprovada para referências e modelos posteriores. As UFs não foram excluídas: elas serão tratadas na etapa de previsão hierárquica, na qual sua intermitência e sua relação com as regiões poderão ser consideradas explicitamente.
+**Decisão.** A entrada foi aprovada para baselines e modelos. As UFs não foram excluídas; foram reservadas para a etapa hierárquica, onde sua intermitência poderá ser tratada explicitamente.
 
 ## Etapa 21 — Referências simples de previsão
 
-As referências simples definem o desempenho mínimo que um modelo mais complexo deve superar. Sem elas, um modelo poderia parecer bom apenas por produzir previsões visualmente sofisticadas.
+As referências simples estabelecem o desempenho mínimo que um modelo mais complexo precisa superar. A referência ingênua repete o último valor conhecido na origem e representa persistência de curtíssimo prazo. A referência ingênua sazonal recupera a observação da mesma semana epidemiológica do ano anterior.
 
-A referência ingênua repete, em cada horizonte, o último número de casos conhecido na origem. Ela representa persistência de curtíssimo prazo. A referência ingênua sazonal utiliza o valor observado na mesma semana epidemiológica da temporada anterior. O script usou `ano_epi` e `semana_epi`, e não uma subtração fixa de 52 semanas, evitando desalinhamentos em anos com 53 semanas epidemiológicas.
+O método sazonal usou `ano_epi` e `semana_epi`, em vez de simplesmente subtrair 52 semanas. Essa escolha evita desalinhamentos em anos epidemiológicos com 53 semanas. A auditoria confirmou que nenhuma referência sazonal usou informação posterior à origem e que as duas referências produziram as 1.392 previsões esperadas.
 
-A busca da referência sazonal foi restrita ao treino disponível em cada origem. A auditoria confirmou que nenhuma das 1.392 referências sazonais foi ausente ou posterior à respectiva data de origem. Foram geradas 2.784 previsões: 1.392 para o método ingênuo e 1.392 para o ingênuo sazonal, sem ausências ou duplicidades.
+![Exemplo das referências no último corte temporal do Brasil](resultados_scripts/etapa_21_referencias_simples/exemplo_previsao_referencias_brasil.png)
 
-![Exemplo das referências no último corte temporal do Brasil](resultados_scripts/exemplo_previsao_referencias_brasil.png)
+No último corte nacional, a referência ingênua repetiu 1.328 casos em todos os horizontes. A referência sazonal recuperou o perfil da temporada anterior e previu 2.499, 2.629, 2.158 e 942 casos para 1, 4, 8 e 13 semanas. Os observados foram 1.386, 1.984, 1.946 e 892. O exemplo não decide o vencedor, mas mostra por que persistência e sazonalidade carregam informações diferentes.
 
-No último corte do Brasil, em 19/04/2026, o ingênuo repetiu 1.328 casos em todos os horizontes. O ingênuo sazonal recuperou o perfil de 2025 e previu 2.499, 2.629, 2.158 e 942 casos para 1, 4, 8 e 13 semanas. Os valores observados foram 1.386, 1.984, 1.946 e 892. Esse exemplo evidencia que uma única origem não escolhe um vencedor: a persistência ajuda no curtíssimo prazo, enquanto a sazonalidade pode ajudar quando o horizonte aumenta.
+**Decisão.** As referências ingênua e ingênua sazonal foram aprovadas como baselines oficiais do estudo.
 
-**Decisão.** As duas referências foram aprovadas como baselines oficiais do estudo.
+## Etapa 22 — Métricas das referências
 
-## Etapa 22 — Métricas de erro das referências
+MAE expressa o erro absoluto médio em casos. RMSE dá mais peso a erros grandes, especialmente importantes quando há risco de pressão hospitalar. MASE divide o erro por uma escala sazonal calculada dentro do treino de cada origem, tornando possível comparar Brasil e regiões sem que a escala da série nacional domine a análise.
 
-MAE mostra o erro médio em número de casos. RMSE dá peso maior aos erros grandes, relevantes quando há risco de pressão hospitalar. MASE divide o erro por uma escala sazonal calculada dentro do treino e permite comparar séries de tamanhos diferentes.
+Foram calculadas 348 escalas MASE — uma para cada combinação de série e origem — sempre usando somente semanas disponíveis até aquela data. Todas foram positivas e válidas.
 
-Para cada série e origem, a escala MASE foi calculada somente com semanas disponíveis até aquela origem. Ela equivale à média dos erros absolutos entre semanas epidemiológicas equivalentes de anos consecutivos no treino. Foram calculadas 348 escalas, todas positivas e sem uso de informação futura.
+![Comparação das referências simples por horizonte](resultados_scripts/etapa_22_metricas_referencias/comparacao_metricas_referencias.png)
 
-![Comparação das referências simples por horizonte](resultados_scripts/comparacao_metricas_referencias.png)
+| Horizonte | Ingênuo: MASE | Sazonal: MASE | Melhor referência |
+|---|---:|---:|---|
+| 1 semana | 0,554 | 1,610 | Ingênuo |
+| 4 semanas | 1,720 | 1,670 | Sazonal |
+| 8 semanas | 3,001 | 1,741 | Sazonal |
+| 13 semanas | 4,338 | 1,823 | Sazonal |
 
-| Horizonte | Melhor MAE | Melhor RMSE | Melhor MASE | Leitura |
-|---|---:|---:|---:|---|
-| 1 semana | Ingênuo: 25,6 | Ingênuo: 47,7 | Ingênuo: 0,55 | O último valor observado é a melhor referência imediata. |
-| 4 semanas | Sazonal: 89,7 | Ingênuo: 181,9 | Sazonal: 1,67 | Resultado misto e diferença pequena de MAE. |
-| 8 semanas | Sazonal: 89,8 | Sazonal: 193,8 | Sazonal: 1,74 | A informação sazonal torna-se decisiva. |
-| 13 semanas | Sazonal: 89,1 | Sazonal: 184,0 | Sazonal: 1,82 | A referência sazonal domina a antecipação trimestral. |
+O MAE ingênuo cresce de 25,6 casos em uma semana para 229,9 em 13 semanas. O MAE sazonal é maior em uma semana, 87,9, mas permanece próximo de 90 casos de quatro a 13 semanas. A leitura é epidemiologicamente coerente: repetir o último nível pode ser suficiente para resposta imediata, mas não acompanha bem uma onda inteira de circulação do VSR.
 
-O MAE ingênuo cresce de 25,6 casos em uma semana para 229,9 em 13 semanas. Já o MAE sazonal é alto em uma semana, 87,9, mas permanece próximo de 90 nos horizontes de 4, 8 e 13 semanas. A leitura é que repetir o último nível não acompanha uma onda inteira, enquanto a temporada anterior traz informação útil em previsões mais longas.
+**Decisão.** Modelos posteriores precisam superar o ingênuo em uma semana e, principalmente, o ingênuo sazonal em oito e 13 semanas.
 
-**Decisão.** Modelos posteriores precisam superar o ingênuo em uma semana e, sobretudo, desafiar o ingênuo sazonal em oito e 13 semanas.
+## Etapa 23 — Tentativa ETS inicial
 
-## Etapa 23 — ETS inicial e auditoria de convergência
+O primeiro experimento ETS comparou estruturas com sazonalidade anual: ETS sazonal aditivo, ETS com tendência aditiva e ETS com tendência aditiva amortecida. A ideia era representar nível, possível tendência recente e o padrão anual de VSR.
 
-O primeiro teste de suavização exponencial comparou três especificações com sazonalidade anual de 52 semanas: ETS apenas sazonal aditivo, ETS com tendência aditiva e ETS com tendência aditiva amortecida. Em cada origem, a implementação inicial estimava os estados sazonais junto aos demais parâmetros.
+A primeira implementação estimava simultaneamente os estados sazonais iniciais, nível e tendência. Esse procedimento mostrou instabilidade numérica em alguns cortes, apesar de as seis séries não terem lacunas temporais. Como o período sazonal é longo, 52 semanas, os cortes iniciais contêm apenas cerca de três ciclos anuais completos; estimar muitos estados sazonais junto com os demais parâmetros torna a otimização mais delicada.
 
-A auditoria confirmou que não havia lacunas temporais: as seis séries tinham 395 semanas, de 30/12/2018 a 19/07/2026, sempre separadas por sete dias. Logo, uma eventual instabilidade não poderia ser atribuída a falhas de calendário ou ausências na entrada.
+Esta tentativa é preservada no histórico metodológico porque motivou uma revisão de implementação. Ela não entra no ranking local final: a evidência comparável e reproduzida localmente começa na Etapa 23B.
 
-O resultado, porém, não foi suficientemente estável para avaliação de erro. Dos 348 ajustes esperados por especificação, o ETS sazonal convergiu em 318 (91,4%), o ETS com tendência aditiva em 87 (25,0%) e o ETS amortecido em 20 (5,7%). O segundo otimizador recuperou 72 ajustes, mas 619 continuaram sem convergir.
-
-Essa diferença de cobertura impediria comparação justa: cada configuração seria avaliada em um conjunto diferente de origens. A causa mais provável é a estimação simultânea de 52 estados sazonais, nível e, em duas especificações, tendência, em cortes iniciais com somente 156 semanas de treino — aproximadamente três ciclos anuais.
-
-**Decisão.** Nenhuma previsão da Etapa 23 entrou na comparação principal de erros. Os arquivos foram preservados como auditoria, e a Etapa 23B foi criada para verificar se a dificuldade era numérica, sem mudar série, calendário, horizonte ou estrutura conceitual dos modelos.
+**Decisão.** A estrutura conceitual ETS foi mantida, mas a inicialização sazonal foi modificada antes da comparação formal.
 
 ## Etapa 23B — ETS com inicialização sazonal heurística
 
-Nesta etapa, mantivemos as mesmas seis séries, 58 origens, quatro horizontes e três estruturas ETS. A única alteração foi utilizar inicialização sazonal heurística. Em vez de estimar simultaneamente todos os estados iniciais da sazonalidade anual, o procedimento estabelece valores iniciais plausíveis com base na própria história observada e otimiza os parâmetros restantes.
+Mantivemos séries, cortes, horizontes e estruturas ETS. A única mudança foi a inicialização heurística dos componentes sazonais: valores iniciais plausíveis são derivados da história observada antes da otimização dos parâmetros restantes. Essa mudança busca separar um problema numérico de um problema substantivo do modelo.
 
-O resultado isolou a origem do problema: os 1.044 ajustes previstos convergiram na primeira tentativa — 348 para cada configuração. Não houve necessidade de recorrer ao segundo otimizador. Cada modelo produziu as 1.392 previsões esperadas, permitindo a comparação direta com as baselines.
+Os 1.044 ajustes esperados convergiram na primeira tentativa: 348 para cada configuração. Cada ETS produziu 1.392 previsões, permitindo comparação justa com as referências.
 
-| Modelo | Ajustes convergentes | Previsões geradas | Previsões corrigidas para zero |
+| Modelo | Ajustes convergentes | Previsões | Previsões corrigidas para zero |
 |---|---:|---:|---:|
 | ETS sazonal aditivo | 348/348 | 1.392 | 41 (2,9%) |
 | ETS tendência aditiva | 348/348 | 1.392 | 226 (16,2%) |
 | ETS tendência amortecida | 348/348 | 1.392 | 99 (7,1%) |
 
-As previsões negativas foram convertidas para zero apenas como proteção operacional, pois internações negativas não são possíveis. Essa correção também é um diagnóstico: a frequência elevada do ETS com tendência aditiva, sobretudo nos horizontes maiores, sinaliza que ele pode extrapolar a dinâmica recente de modo pouco plausível.
+Previsões negativas foram convertidas para zero exclusivamente como proteção operacional: contagens de internação não podem ser negativas. Essa correção é também um diagnóstico. A alta frequência no ETS com tendência aditiva indica extrapolação pouco plausível, sobretudo nos horizontes maiores.
 
-![ETS com inicialização heurística no último corte do Brasil](resultados_scripts/exemplo_previsoes_ets_heuristico_brasil.png)
+![ETS com inicialização heurística no último corte do Brasil](resultados_scripts/etapa_23b_ets_inicializacao_heuristica/exemplo_previsoes_ets_heuristico_brasil.png)
 
-No último corte nacional, o ETS com tendência aditiva projetou 3.983 casos em 13 semanas, enquanto o observado foi 892. O ETS amortecido projetou 2.213 e o ETS sazonal, 1.022. O gráfico é uma ilustração útil de comportamento, mas não foi usado isoladamente para escolher modelos: a decisão depende da avaliação em todos os cortes.
-
-**Decisão.** As três configurações foram aprovadas apenas para a etapa de métricas, pois cumpriram o requisito de cobertura idêntica. Elas ainda não foram declaradas modelos finais.
+**Decisão.** Os três ETS foram aceitos para a comparação de métricas por possuírem cobertura completa, mas a frequência de correções passou a compor a decisão de elegibilidade.
 
 ## Etapa 24 — Comparação entre baselines e ETS
 
-As duas baselines e os três ETS heurísticos foram avaliados nos mesmos 348 cortes, seis séries, quatro horizontes e valores observados. Cada modelo possui 1.392 previsões; portanto, diferenças de desempenho não decorrem de cobertura ou calendário distintos.
+As duas baselines e os três ETS heurísticos foram avaliados nos mesmos 348 cortes, seis séries, quatro horizontes e alvos observados. Cada modelo produziu 1.392 previsões; portanto, diferenças de desempenho não são consequência de cobertura desigual.
 
-As métricas foram calculadas usando a previsão operacional não negativa. O diagnóstico das correções foi preservado separadamente para evitar que bons resultados médios escondessem previsões epidemiologicamente impossíveis.
+![Comparação entre baselines e ETS](resultados_scripts/etapa_24_comparacao_baselines_ets/comparacao_baselines_ets_metricas.png)
 
-![Comparação entre baselines e ETS](resultados_scripts/comparacao_baselines_ets_metricas.png)
+| Horizonte | Melhor modelo por MASE | MASE | MAE |
+|---|---|---:|---:|
+| 1 semana | ETS tendência amortecida | 0,507 | 21,6 |
+| 4 semanas | ETS tendência amortecida | 1,311 | 65,5 |
+| 8 semanas | Ingênuo sazonal | 1,741 | 89,8 |
+| 13 semanas | Ingênuo sazonal | 1,823 | 89,1 |
 
-| Horizonte | Melhor modelo por MASE | MASE | MAE | Interpretação |
+Em uma semana, o ETS amortecido reduziu o MASE de 0,554 do ingênuo para 0,507. Em quatro semanas, reduziu o melhor MASE de baseline, 1,670, para 1,311. Em oito e 13 semanas, a sazonalidade anual venceu: o ingênuo sazonal foi o melhor nas seis séries.
+
+O ETS com tendência aditiva não venceu nenhum horizonte agregado e exibiu muitas correções para zero: 23,0% em oito semanas e 24,7% em 13 semanas. O ETS sazonal aditivo foi estável, mas não venceu no agregado. O ETS amortecido seguirá como candidato de curto prazo, com ressalva de 6,0% de correções em quatro semanas e 10,3% em 13 semanas.
+
+**Decisão.** A política preliminar passa a depender do horizonte: ETS amortecido é a referência a superar em 1 e 4 semanas; ingênuo sazonal é a referência a superar em 8 e 13 semanas.
+
+## Etapa 25 — SARIMA sazonal clássico
+
+SARIMA foi testado para verificar se dependência serial e sazonalidade anual, modeladas explicitamente, acrescentariam informação além de ETS e baselines. Foram definidas duas especificações parcimoniosas antes da execução, sem busca automática ampla:
+
+- `SARIMA(0,0,1)(0,1,1,52)`, identificado como SARIMA sazonal MA;
+- `SARIMA(0,1,1)(0,1,1,52)`, identificado como SARIMA mudança de nível.
+
+A grade pequena foi intencional. Com 395 semanas, um ciclo sazonal de 52 semanas e 348 ajustes por configuração, uma busca ampla aumentaria muito o custo computacional e o risco de selecionar parâmetros excessivamente adaptados ao período avaliado.
+
+Na reprodução local, os modelos não atingiram a cobertura necessária:
+
+| Modelo | Ajustes convergentes | Cobertura de previsões | Situação |
+|---|---:|---:|---|
+| SARIMA sazonal MA | 279/348 | 1.116/1.392 (80,2%) | Reprovado |
+| SARIMA mudança de nível | 282/348 | 1.128/1.392 (81,0%) | Reprovado |
+
+As falhas ocorreram em diversas séries e em várias origens, não apenas nos primeiros treinos. A auditoria registra principalmente não convergência do otimizador de máxima verossimilhança; portanto, aumentar cegamente o número de iterações não seria uma solução metodologicamente defensável.
+
+![Previsões SARIMA no último corte temporal do Brasil](resultados_scripts/etapa_25_modelos_sarima/exemplo_previsoes_sarima_brasil.png)
+
+**Decisão.** Os SARIMA clássicos não entram no ranking principal. Compará-los com modelos avaliados em 100% dos cortes produziria uma conclusão injusta.
+
+## Etapa 25A — Diagnóstico de estabilidade do SARIMA
+
+Esta etapa não tentou “forçar” os SARIMA a concluir. Ela transformou o problema de convergência em evidência auditável: registrou falhas por data, série, tamanho de treino, mensagem do otimizador e previsão negativa.
+
+![Diagnóstico de estabilidade dos SARIMA](resultados_scripts/etapa_25a_diagnostico_sarima/diagnostico_estabilidade_sarima.png)
+
+A cobertura de aproximadamente 80% é insuficiente para uma comparação de erro que exige os mesmos 348 ajustes e 1.392 previsões por modelo. Assim, os SARIMA são resultados relevantes para a narrativa — foram testados, apresentaram limitações concretas e foram descartados por critério predefinido —, mas não são candidatos operacionais.
+
+**Decisão.** Não haverá nova tentativa de SARIMA sazonal clássico nesta fase. A próxima variação deve resolver uma limitação identificada, e não apenas aumentar complexidade.
+
+## Etapa 25B — SARIMAX harmônico
+
+O SARIMAX harmônico foi incluído como alternativa à sazonalidade anual estimada por 52 estados do SARIMA. A série foi transformada por `log1p`, a sazonalidade anual foi representada por dois pares de harmônicos de Fourier, com período 52,1786 semanas, e a dependência de curto prazo foi representada por ARMA(1,1). Não foi incluído componente sazonal SARIMA.
+
+Em termos práticos, os harmônicos descrevem uma onda anual suave sem exigir que o modelo estime separadamente cada semana do ano. Essa escolha é coerente com a sazonalidade observada de VSR, mas permite variação gradual de nível e reduz a dificuldade numérica do SARIMA clássico.
+
+O modelo `SARIMAX_FOURIER2_ARMA11_LOG1P` convergiu nos 348 ajustes, sem erro de ajuste ou previsão, e gerou as 1.392 previsões esperadas. A estabilidade confirma que a reformulação resolveu o problema computacional; ela não implica, por si só, que o modelo seja o mais preciso.
+
+![SARIMAX harmônico no último corte do Brasil](resultados_scripts/etapa_25b_sarimax_harmonico/exemplo_previsao_sarimax_harmonico_brasil.png)
+
+**Decisão.** O SARIMAX harmônico foi aprovado para a comparação não hierárquica como alternativa estável, sem substituir automaticamente ETS ou a baseline sazonal.
+
+## Etapa 26 — Comparação consolidada dos modelos não hierárquicos
+
+Esta etapa reuniu somente modelos com cobertura completa: ingênuo, ingênuo sazonal, ETS sazonal aditivo, ETS de tendência amortecida e SARIMAX harmônico. São cinco modelos × 1.392 previsões = 6.960 erros individuais comparáveis, todos sem valores ausentes.
+
+O ETS com tendência aditiva foi excluído por excesso de previsões corrigidas para zero e desempenho inferior ao ETS amortecido. Os dois SARIMA clássicos foram excluídos pela cobertura de apenas 80,2% e 81,0%.
+
+![Comparação dos modelos não hierárquicos](resultados_scripts/etapa_26_comparacao_modelos_nao_hierarquicos/comparacao_modelos_nao_hierarquicos.png)
+
+| Horizonte | Melhor modelo | MASE | MAE | Leitura |
 |---|---|---:|---:|---|
-| 1 semana | ETS tendência amortecida | 0,507 | 21,6 | A informação recente contribui para o curtíssimo prazo. |
-| 4 semanas | ETS tendência amortecida | 1,311 | 65,5 | O modelo reduz o erro em relação às baselines no curto prazo. |
-| 8 semanas | Ingênuo sazonal | 1,741 | 89,8 | A temporada anterior é mais informativa que a extrapolação recente. |
-| 13 semanas | Ingênuo sazonal | 1,823 | 89,1 | A sazonalidade anual domina a antecipação mais longa. |
+| 1 semana | ETS tendência amortecida | 0,507 | 21,6 | Melhor resposta imediata. |
+| 4 semanas | ETS tendência amortecida | 1,311 | 65,5 | Melhor desempenho de curto prazo. |
+| 8 semanas | Ingênuo sazonal | 1,741 | 89,8 | A temporada anterior é mais informativa. |
+| 13 semanas | Ingênuo sazonal | 1,823 | 89,1 | A sazonalidade anual domina a previsão mais longa. |
 
-Em uma semana, o ETS amortecido reduziu o MASE de 0,554 do ingênuo para 0,507, um ganho de 8,5%. Em quatro semanas, reduziu o melhor MASE de baseline, 1,670, para 1,311, um ganho de 21,5%.
+O SARIMAX harmônico foi estável, mas não venceu os horizontes: MASE 0,621, 1,462, 2,256 e 2,654 em 1, 4, 8 e 13 semanas. Ele fica especialmente próximo do segundo lugar em oito e 13 semanas, o que mostra que a representação harmônica contém informação sazonal útil, mas não supera a referência sazonal simples no cenário atual.
 
-Em oito e 13 semanas, a situação se inverteu. O ingênuo sazonal obteve MASE de 1,741 e 1,823, enquanto o melhor ETS ficou em 2,628 e 3,660, respectivamente. Assim, não há um vencedor único para todos os horizontes: a previsão de curto prazo favorece o ETS amortecido; a previsão de médio prazo favorece a referência sazonal.
+**Decisão.** Esta é uma recomendação preliminar, restrita a Brasil e regiões e a modelos não hierárquicos. Ela não encerra a escolha final do estudo: ainda falta avaliar se a reconciliação de previsões melhora ou piora o desempenho e a coerência geográfica.
 
-A leitura por série confirma o padrão. O ETS amortecido venceu Brasil, Nordeste, Sudeste e Sul em uma semana; em quatro semanas venceu cinco das seis séries, com exceção do Centro-Oeste. Em oito e 13 semanas, o ingênuo sazonal venceu as seis séries.
+## Etapa 27 — Estrutura e validação da hierarquia geográfica
 
-O ETS com tendência aditiva não venceu nenhum horizonte agregado. Além disso, exigiu correção para zero em 23,0% das previsões de oito semanas e 24,7% das previsões de 13 semanas. Ele não seguirá como candidato principal. O ETS sazonal aditivo foi estável, mas não venceu no agregado; será mantido apenas como referência de sensibilidade. O ETS amortecido permanecerá como candidato de curto prazo, com a ressalva de 6,0% de correções no horizonte 4 e 10,3% no horizonte 13.
+Os dados formam uma hierarquia geográfica exata: 27 UFs formam cinco regiões, e as cinco regiões formam o Brasil. Antes de gerar previsões hierárquicas, verificamos se essa relação é verdadeira nos dados históricos e construímos formalmente a matriz de agregação.
 
-**Decisão.** A seleção passa a ser dependente do horizonte: ETS amortecido é a referência a superar em 1 e 4 semanas; ingênuo sazonal é a referência a superar em 8 e 13 semanas. O próximo modelo será SARIMA, avaliado no mesmo protocolo, antes de avançarmos à previsão hierárquica.
+A estrutura contém 33 nós: 27 folhas (UFs), cinco agregados (regiões) e uma raiz (Brasil). O painel hierárquico possui 13.035 linhas, equivalentes a 33 nós × 395 semanas maduras. Não há duplicidade de chave ou caso ausente.
 
-## Etapa 25 — Modelos SARIMA com sazonalidade anual
-
-SARIMA foi introduzido para verificar se a dependência serial dos erros, combinada à sazonalidade anual, acrescentaria informação além das baselines e do ETS. O teste manteve as mesmas seis séries, 58 origens temporais, quatro horizontes e dados maduros usados nas etapas anteriores.
-
-Foram escolhidas duas especificações pequenas e previamente definidas, sem busca automática ampla de parâmetros. A primeira, `SARIMA(0,0,1)(0,1,1,52)`, acrescenta componentes de média móvel aos desvios em torno do padrão anual. A segunda, `SARIMA(0,1,1)(0,1,1,52)`, acrescenta também uma diferença não sazonal, para testar se a mudança recente de nível entre semanas melhoraria a previsão. A escolha parcimoniosa foi intencional: com 395 semanas por série e período sazonal de 52 semanas, uma grade extensa aumentaria custo computacional e risco de seleção excessivamente adaptada ao histórico.
-
-O ajuste foi executado com o mesmo protocolo de validação temporal e com auditoria de convergência em cada origem. Foram previstos 696 ajustes — 348 por especificação — e a execução no Colab levou aproximadamente quatro horas. Esse custo também é um resultado operacional relevante: um método para vigilância precisa ser não apenas preciso, mas viável de atualizar periodicamente.
-
-| Modelo | Ajustes convergentes | Cobertura para métricas | Previsões negativas corrigidas |
+| Agregado validado | Semanas comparadas | Diferença máxima | Semanas com diferença |
 |---|---:|---:|---:|
-| SARIMA sazonal MA | 284/348 (81,6%) | Insuficiente | 14 entre 1.136 previsões disponíveis |
-| SARIMA mudança de nível | 277/348 (79,6%) | Insuficiente | 26 entre 1.108 previsões disponíveis |
+| Brasil versus soma das UFs | 395 | 0 | 0 |
+| Norte versus suas UFs | 395 | 0 | 0 |
+| Nordeste versus suas UFs | 395 | 0 | 0 |
+| Centro-Oeste versus suas UFs | 395 | 0 | 0 |
+| Sudeste versus suas UFs | 395 | 0 | 0 |
+| Sul versus suas UFs | 395 | 0 | 0 |
 
-As falhas não se concentraram somente nos cortes mais curtos. Elas ocorreram principalmente em treinos de 212 a 264 semanas e atingiram todas as seis séries. A auditoria registrou falhas de otimização por máxima verossimilhança e, em alguns cortes, insuficiência de observações para estimar parâmetros iniciais sazonais. Aumentar cegamente o número máximo de iterações não é uma resposta adequada, porque o custo já foi alto e o padrão se repetiu em ambas as especificações.
+O calendário de avaliação foi expandido sem mudar origens nem horizontes: 232 combinações de origem e horizonte são aplicadas aos 33 nós, resultando em 7.656 previsões exigidas por modelo. Portanto, qualquer método hierárquico futuro será avaliado nos mesmos tempos e com os mesmos alvos observados.
 
-![Previsões SARIMA no último corte temporal do Brasil](resultados_scripts/exemplo_previsoes_sarima_brasil.png)
+A expansão também confirmou um ponto importante da análise exploratória: 13 UFs têm mais de 50% de semanas sem casos confirmados. Piauí, Mato Grosso, Tocantins e Alagoas superam 70% de semanas zero. Em contraste, São Paulo apresenta 3,0%. Essa heterogeneidade impede usar o mesmo modelo individual complexo para todas as UFs.
 
-No último corte nacional, em 19/04/2026, o SARIMA sazonal previu 2.890 casos para quatro semanas, frente a 1.984 observados; o SARIMA com mudança de nível previu 1.494. Em 13 semanas, os valores previstos foram 1.079 e 223, contra 892 observados. O gráfico ilustra comportamentos diferentes, mas não é usado para selecionar modelo, pois um único corte não substitui a validação completa.
-
-**Decisão.** Os SARIMA testados não entram no ranking principal de MAE, RMSE e MASE, pois não produziram previsões nos mesmos 348 cortes das baselines e dos ETS. Os resultados serão preservados como tentativa auditada e poderão ser revisitados localmente, com uma especificação ainda mais simples, somente se isso for justificado. A prioridade seguinte passa a ser a previsão hierárquica, que responde diretamente à estrutura UF, região e Brasil e ao desafio das séries estaduais esparsas.
+**Decisão.** A hierarquia histórica e o calendário hierárquico foram aprovados. Isso demonstra que os dados agregados são coerentes; ainda não demonstra que as previsões serão coerentes. A coerência preditiva será avaliada por métodos de reconciliação.
 
 ## Conclusões provisórias
 
-1. Há ganho preditivo de curto prazo ao combinar nível recente, tendência amortecida e sazonalidade.
-2. A sazonalidade anual é indispensável para previsões de dois e três meses.
-3. A tendência aditiva simples é instável do ponto de vista epidemiológico: além de piorar os erros longos, produz muitas previsões negativas antes do truncamento.
-4. Convergência numérica é necessária, mas não suficiente. Um modelo também precisa gerar previsões plausíveis, cobrir todos os cortes e reduzir o erro fora da amostra.
-5. O SARIMA avaliado apresentou cobertura insuficiente e alto custo computacional; por isso, não é candidato principal nesta configuração.
-6. A escolha final pode ser horizonte-dependente, desde que essa regra seja definida com base na validação temporal e seja útil para planejamento hospitalar.
+1. A base madura e o calendário temporal permitem comparação reprodutível sem vazamento de informação futura.
+2. ETS com tendência amortecida é a melhor referência para previsões de uma e quatro semanas em Brasil e regiões.
+3. A referência ingênua sazonal é difícil de superar em oito e 13 semanas; ela deve permanecer como baseline obrigatório.
+4. A inicialização heurística resolveu a instabilidade do ETS sem alterar a definição do problema de previsão.
+5. Os SARIMA clássicos não atingiram cobertura suficiente e foram descartados de forma transparente.
+6. O SARIMAX harmônico entregou estabilidade completa, mas não superou os melhores métodos nos horizontes avaliados.
+7. A escolha não hierárquica atual é preliminar e depende do horizonte.
+8. A hierarquia geográfica histórica é exata, mas a alta intermitência em várias UFs exige uma reconciliação cuidadosa e avaliação por nível geográfico.
 
-## Próximos passos da modelagem
+## Próximos passos aprovados
 
-1. Preparar o ambiente local de execução, evitando dependência de créditos do Colab para os experimentos posteriores.
-2. Estender a base de previsão para as 27 UFs, mantendo o mesmo calendário e a regra de maturidade.
-3. Gerar previsões-base em UF, região e Brasil, inicialmente com métodos robustos às séries esparsas.
-4. Aplicar e comparar reconciliação hierárquica — bottom-up, top-down e MinT, se a matriz de erros permitir — para garantir coerência entre os níveis geográficos.
-5. Manter somente métodos que acrescentarem ganho mensurável, estabilidade e plausibilidade epidemiológica.
+1. Gerar previsões-base para os 33 nós geográficos. Para Brasil e regiões, a política será guiada pelo resultado não hierárquico; para UFs intermitentes, começaremos com referências sazonais estáveis.
+2. Construir erros de calibração anteriores ao período formal de validação, evitando usar alvos futuros para estimar a incerteza da reconciliação.
+3. Comparar previsões-base, bottom-up, top-down, reconciliação estrutural e MinT com shrinkage, caso os diagnósticos de covariância permitam.
+4. Avaliar os resultados separadamente em Brasil, regiões e UFs. Uma média global não deve ocultar o desempenho nos níveis operacionais mais relevantes.
+5. Auditar previsões negativas. Truncar valores após uma reconciliação pode quebrar a coerência da soma; se esse problema for material, a reconciliação deverá incorporar não negatividade ou ser descartada.
+
+## Referências metodológicas
+
+- Hyndman, R. J. et al. *Optimal combination forecasts for hierarchical time series* (2011): https://collaborate.robjhyndman.com/publications/hierarchical/
+- Wickramasuriya, S. L., Athanasopoulos, G. e Hyndman, R. J. *Optimal forecast reconciliation for hierarchical and grouped time series through trace minimization* (2019): https://robjhyndman.com/papers/MinT.pdf
+- Hyndman, R. J. e Athanasopoulos, G. *Forecasting: Principles and Practice — Hierarchical forecasting*: https://otexts.robjhyndman.com/fpp2/hierarchical-forecasting.html
+- Statsmodels. *SARIMAX*: https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.sarimax.SARIMAX.html
 
 ## Arquivos de evidência
 
-- Notebook parcial: `notebook_parcial_modelagem_avaliacao/Modelagem_Avaliacao_3_Etapa_v2.ipynb`.
-- Entrada aprovada: `painel_modelagem_brasil_regioes.parquet`, `resumo_entrada_modelagem.csv`, `perfil_campos_entrada_modelagem.csv` e `validacao_calendario_entrada_modelagem.csv`.
-- Baselines: `previsoes_referencias_simples.csv`, `auditoria_referencias_simples.csv`, `resumo_disponibilidade_referencias.csv` e `exemplo_previsao_referencias_brasil.png`.
-- Métricas das baselines: `escalas_mase_por_origem.csv`, `erros_individuais_referencias.csv`, `metricas_agregadas_referencias.csv`, `ranking_referencias_por_horizonte.csv` e `comparacao_metricas_referencias.png`.
-- ETS inicial: `auditoria_ets.csv`, `auditoria_tentativas_ets.csv`, `resumo_convergencia_ets.csv`, `resumo_disponibilidade_ets.csv` e `exemplo_previsoes_ets_brasil.png`.
-- ETS heurístico: `auditoria_ets_heuristico.csv`, `auditoria_tentativas_ets_heuristico.csv`, `resumo_convergencia_ets_heuristico.csv`, `resumo_disponibilidade_ets_heuristico.csv`, `previsoes_ets_heuristico.csv` e `exemplo_previsoes_ets_heuristico_brasil.png`.
-- Comparação da Etapa 24: `controle_modelos_comparados.csv`, `erros_individuais_baselines_ets.csv`, `metricas_agregadas_baselines_ets.csv`, `ranking_modelos_baselines_ets.csv`, `diagnostico_correcoes_nao_negativas_ets.csv`, `comparacao_baselines_ets_metricas.png` e o arquivo de métricas por série da etapa 24.
-- SARIMA: `configuracoes_sarima.csv`, `controle_regularidade_series_sarima.csv`, `auditoria_sarima.csv`, `resumo_convergencia_sarima.csv`, `resumo_disponibilidade_sarima.csv`, `previsoes_sarima.csv` e `exemplo_previsoes_sarima_brasil.png`.
+- Notebook da etapa: `notebook_parcial_modelagem_avaliacao/Modelagem_Avaliacao_3_Etapa_v2.ipynb`.
+- Etapa 20: `resultados_scripts/etapa_20_preparacao_modelagem/`.
+- Etapas 21 e 22: `resultados_scripts/etapa_21_referencias_simples/` e `resultados_scripts/etapa_22_metricas_referencias/`.
+- Etapa 23B: `resultados_scripts/etapa_23b_ets_inicializacao_heuristica/`.
+- Etapa 24: `resultados_scripts/etapa_24_comparacao_baselines_ets/`.
+- Etapas 25 e 25A: `resultados_scripts/etapa_25_modelos_sarima/` e `resultados_scripts/etapa_25a_diagnostico_sarima/`.
+- Etapa 25B: `resultados_scripts/etapa_25b_sarimax_harmonico/`.
+- Etapa 26: `resultados_scripts/etapa_26_comparacao_modelos_nao_hierarquicos/`.
+- Etapa 27: `resultados_scripts/etapa_27_estrutura_hierarquica/`.

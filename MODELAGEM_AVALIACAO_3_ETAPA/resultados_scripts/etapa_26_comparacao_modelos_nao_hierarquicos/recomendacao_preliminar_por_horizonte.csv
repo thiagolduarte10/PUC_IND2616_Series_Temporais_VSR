@@ -1,0 +1,5 @@
+familia_modelo,modelo,horizonte_semanas,avaliacoes,mae,rmse,mase,vies_medio,ranking_mase,ranking_mae,ranking_rmse,modelo_recomendado,criterio
+ETS,ETS_TENDENCIA_AMORTECIDA_HEURISTICO,1,348.0,21.551023112952134,39.99542599755336,0.5069836795424464,0.3047059386153978,1,1,1,ETS tendência amortecida,Menor MASE agregado entre modelos não hierárquicos com cobertura completa
+ETS,ETS_TENDENCIA_AMORTECIDA_HEURISTICO,4,348.0,65.51524609230204,144.16291151468462,1.3106182059361793,-3.322144829459905,1,1,1,ETS tendência amortecida,Menor MASE agregado entre modelos não hierárquicos com cobertura completa
+BASELINE,INGENUO_SAZONAL,8,348.0,89.78735632183908,193.84767096932035,1.7411895797941912,-28.24137931034483,1,1,1,Ingênuo sazonal,Menor MASE agregado entre modelos não hierárquicos com cobertura completa
+BASELINE,INGENUO_SAZONAL,13,348.0,89.11494252873563,184.0178183526377,1.8225253781347905,-32.189655172413794,1,1,1,Ingênuo sazonal,Menor MASE agregado entre modelos não hierárquicos com cobertura completa

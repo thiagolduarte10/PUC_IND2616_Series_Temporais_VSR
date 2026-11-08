@@ -1,0 +1,7 @@
+nivel,unidade,semanas,primeira_semana,ultima_semana,intervalo_minimo_dias,intervalo_maximo_dias,serie_semanal_regular
+BRASIL,BRASIL,395,2018-12-30,2026-07-19,7,7,True
+REGIAO,CENTRO_OESTE,395,2018-12-30,2026-07-19,7,7,True
+REGIAO,NORDESTE,395,2018-12-30,2026-07-19,7,7,True
+REGIAO,NORTE,395,2018-12-30,2026-07-19,7,7,True
+REGIAO,SUDESTE,395,2018-12-30,2026-07-19,7,7,True
+REGIAO,SUL,395,2018-12-30,2026-07-19,7,7,True

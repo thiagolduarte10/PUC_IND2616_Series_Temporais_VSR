@@ -1,0 +1,5 @@
+modelo,horizonte_semanas,previsoes_disponiveis,previsoes_ajustadas_nao_negativas,previsoes_esperadas,percentual_disponivel
+SARIMAX_FOURIER2_ARMA11_LOG1P,1,348,0,348,100.0
+SARIMAX_FOURIER2_ARMA11_LOG1P,4,348,0,348,100.0
+SARIMAX_FOURIER2_ARMA11_LOG1P,8,348,0,348,100.0
+SARIMAX_FOURIER2_ARMA11_LOG1P,13,348,0,348,100.0

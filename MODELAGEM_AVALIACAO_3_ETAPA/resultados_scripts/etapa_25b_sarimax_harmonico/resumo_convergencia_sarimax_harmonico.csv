@@ -1,0 +1,2 @@
+modelo,CONVERGIU,NAO_CONVERGIU,ERRO_AJUSTE,ERRO_NA_PREVISAO,ajustes_esperados,modelo_aprovado_para_metricas
+SARIMAX_FOURIER2_ARMA11_LOG1P,348,0,0,0,348,True

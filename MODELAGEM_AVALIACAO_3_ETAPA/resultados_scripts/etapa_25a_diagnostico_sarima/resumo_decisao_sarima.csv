@@ -1,0 +1,3 @@
+modelo,ajustes_realizados,ajustes_convergidos,ajustes_nao_convergidos,primeira_origem,ultima_origem,ajustes_esperados,cobertura_percentual,previsoes_geradas,previsoes_negativas_brutas,previsoes_corrigidas_para_zero,previsoes_esperadas,cobertura_previsoes_percentual,modelo_aprovado_para_metricas,decisao
+SARIMA_MUDANCA_NIVEL,348,282,66,2021-12-19,2026-04-19,348,81.03448275862068,1128,27,27,1392,81.03448275862068,False,REPROVADO_COBERTURA_INSUFICIENTE
+SARIMA_SAZONAL_MA,348,279,69,2021-12-19,2026-04-19,348,80.17241379310344,1116,12,12,1392,80.17241379310344,False,REPROVADO_COBERTURA_INSUFICIENTE

@@ -1,4 +1,0 @@
-modelo,tendencia,tendencia_amortecida,sazonalidade,periodo_sazonal
-ETS_SAZONAL_ADITIVO,,False,add,52
-ETS_TENDENCIA_ADITIVA,add,False,add,52
-ETS_TENDENCIA_AMORTECIDA,add,True,add,52

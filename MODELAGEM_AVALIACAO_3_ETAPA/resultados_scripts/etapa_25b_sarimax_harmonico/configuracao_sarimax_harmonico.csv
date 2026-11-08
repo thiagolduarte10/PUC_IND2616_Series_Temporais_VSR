@@ -1,0 +1,2 @@
+modelo,ordem_arma,ordem_sazonal,transformacao,harmonicos,periodo_anual_semanas
+SARIMAX_FOURIER2_ARMA11_LOG1P,"(1, 0, 1)","(0, 0, 0, 0)",log1p,2,52.17857142857143
