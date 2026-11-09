@@ -1,225 +1,322 @@
-# Modelos importantes para o estudo
+# Modelos importantes para o estudo — guia atualizado após a execução
 
-## Ponto de partida
-Este arquivo apresenta cinco candidatos iniciais, não uma escolha final.
-Eles foram selecionados por serem coerentes com os conteúdos da disciplina: referências de comparação, suavização exponencial, ARIMA/SARIMA, regressão dinâmica e séries hierárquicas.
-Antes de escolher qualquer um, será necessário conhecer a frequência, os períodos disponíveis, os valores ausentes, os atrasos de notificação e o comportamento das séries por local.
-O objetivo é começar com métodos interpretáveis e testar se eles funcionam em semanas ainda não observadas.
+## Propósito deste documento
 
-## Como ler as fichas
-Cada ficha responde às mesmas perguntas: ideia central, funcionamento, situação adequada, exemplo, vantagens, limites, verificações e comparação.
-O exemplo é ilustrativo: não representa um resultado obtido nem pressupõe que o padrão estará presente nos dados reais.
-Como apoio conceitual, a disciplina usa a abordagem de previsão apresentada em [Forecasting: Principles and Practice](https://otexts.com/fpp3/).
+Este arquivo começou como um mapa de candidatos antes de conhecermos os dados. Agora ele registra o que cada família de modelos significa, como foi usada no trabalho e qual foi sua contribuição real para prever semanalmente internações por SRAG associada ao VSR em crianças menores de dois anos.
 
----
+O estudo trabalhou com 395 semanas maduras, de 30/12/2018 a 19/07/2026, e com uma hierarquia geográfica de 27 UFs, cinco regiões e Brasil. As previsões foram avaliadas em 58 origens temporais e nos horizontes de 1, 4, 8 e 13 semanas. Portanto, as conclusões abaixo decorrem de previsão fora da amostra, e não de ajuste visual ao passado.
 
-## 1. Ingênuo sazonal (Seasonal Naive)
+## Resultado em uma página
 
-**O que é**
-É uma referência simples que repete o valor observado no mesmo período sazonal anterior.
-Em uma série semanal com sazonalidade anual, a previsão para uma semana usa o valor da semana equivalente do ano anterior.
+| Método ou estratégia | Foi testado? | Papel final no trabalho |
+|---|---|---|
+| Ingênuo | Sim | Melhor referência curta para UFs; usado na Base V2 em 1 e 4 semanas. |
+| Ingênuo sazonal | Sim | Melhor referência em 8 e 13 semanas; mantido na política final. |
+| ETS amortecido | Sim | Melhor escolha não hierárquica para Brasil e regiões em 1 e 4 semanas. |
+| SARIMA clássico | Sim | Não atingiu cobertura estável suficiente; não entrou no ranking final. |
+| SARIMAX com harmônicos | Sim | Convergiu, mas não superou as escolhas selecionadas. |
+| Bottom-up, top-down e WLS estrutural | Sim | Foram comparadores hierárquicos; não foram escolhidos como política final. |
+| MinT com shrinkage OAS | Sim | Válido como comparador, mas gerou previsões negativas sem restrição. |
+| MinT não negativo | Sim | Política final em 1 e 4 semanas quando é preciso comunicar toda a hierarquia. |
 
-**Como funciona**
-Não procura tendência, relações causais ou formato matemático complexo.
-Ele parte da hipótese mínima de que o padrão daquela semana tende a se repetir de um ciclo anual para o outro.
+## Como interpretar uma comparação de modelos
 
-**Quando faz sentido**
-É apropriado quando há um ciclo anual reconhecível e a pergunta é de curto prazo.
-Também é indispensável como linha de base, mesmo que a série pareça simples ou irregular.
+Um método não é “bom” por ter fórmula mais complexa. Ele precisa prever semanas que ainda não estavam disponíveis, produzir resultados em todos os cortes exigidos e respeitar o uso pretendido. Neste trabalho, foram considerados ao mesmo tempo:
 
-**Exemplo no estudo**
-Se uma UF registrou 18 internações associadas ao VSR na semana epidemiológica 22 de 2025, a referência prevê 18 para a semana 22 de 2026.
-Esse número é apenas um exemplo didático; o dado real pode ser diferente e pode sofrer atraso de registro.
+- **MAE:** erro absoluto médio em número de internações;
+- **RMSE:** erro quadrático médio, mais sensível a erros grandes;
+- **MASE:** erro escalonado que permite comparar Brasil, regiões e UFs;
+- **cobertura:** quantidade de previsões efetivamente concluídas;
+- **não negatividade:** uma contagem prevista não pode ser menor que zero;
+- **coerência hierárquica:** UFs devem somar para região e regiões devem somar para Brasil.
 
-**Pontos fortes**
-É transparente, rápido e difícil de superar quando a sazonalidade é muito estável.
-Por isso ele impede que um método mais sofisticado seja aceito apenas por parecer mais moderno.
-
-**Cuidados e limites**
-Ele ignora mudanças recentes, tendências, choques e diferenças entre anos.
-Também pode falhar se a data e a intensidade do pico variarem de uma temporada para outra.
-
-**O que verificar nos dados**
-Precisamos confirmar se as séries semanais têm ciclos anuais comparáveis e se há semanas finais incompletas.
-Também será preciso decidir como tratar semanas sem registro ou com notificação tardia.
-
-**Como avaliar**
-Ele será comparado com os demais em várias origens temporais, sempre prevendo semanas que ainda não estavam disponíveis no momento da previsão.
-Se outro candidato não for consistentemente melhor, esta referência continua sendo a escolha mais honesta.
+Assim, o menor erro médio isolado não foi o único critério. Uma previsão impossível ou incompatível com os outros níveis geográficos não é operacionalmente adequada para comunicar demanda de internações.
 
 ---
 
-## 2. Suavização exponencial sazonal (ETS / Holt-Winters)
+## 1. Referências ingênuas: persistência e sazonalidade
 
-**O que é**
-É uma família de modelos que descreve uma série por componentes de nível, tendência e sazonalidade.
-ETS significa Error, Trend e Seasonal: erro, tendência e componente sazonal.
+### Ideia central
 
-**Como funciona**
-O método dá mais peso às observações recentes, sem descartar completamente o histórico.
-Dependendo do comportamento observado, pode incluir ou não tendência e sazonalidade, em formas aditivas ou multiplicativas.
+Uma referência ingênua não tenta descobrir uma estrutura sofisticada. Ela transforma uma regra simples em previsão e estabelece o mínimo que modelos mais complexos precisam superar.
 
-**Quando faz sentido**
-É indicado quando a série apresenta padrão repetitivo, mas o nível e a intensidade variam gradualmente ao longo do tempo.
-Costuma ser uma opção forte para séries curtas ou médias, desde que haja dados suficientes para identificar o ciclo.
+O **ingênuo** repete o último valor observado:
 
-**Exemplo no estudo**
-Imagine uma UF em que o período de maior ocorrência costuma acontecer no meio do ano, mas o total anual cresce ou diminui aos poucos.
-Um ETS sazonal atualiza esse padrão a cada nova semana e projeta as semanas seguintes a partir das componentes atualizadas.
+\[
+\hat{y}_{t+h} = y_t
+\]
 
-**Pontos fortes**
-É interpretável: podemos discutir separadamente o nível atual, uma possível tendência e a sazonalidade.
-Também fornece previsões e intervalos de incerteza de forma natural no conjunto de modelos da disciplina.
+O **ingênuo sazonal** repete o valor do ciclo anual anterior. Para séries semanais, a referência corresponde aproximadamente à mesma semana da temporada anterior:
 
-**Cuidados e limites**
-Ele pressupõe que as mudanças sejam relativamente graduais e pode reagir mal a quebras bruscas de padrão.
-Para contagens muito baixas, muitos zeros ou sazonalidade instável, a configuração escolhida deve ser examinada com cautela.
+\[
+\hat{y}_{t+h} = y_{t+h-m}, \quad m \approx 52
+\]
 
-**O que verificar nos dados**
-Precisamos observar gráficos semanais, tendência, repetição de picos, dispersão e estabilidade da amplitude sazonal.
-Também será necessário verificar se a série possui histórico suficiente para estimar uma sazonalidade anual confiável.
+### Por que fez sentido neste estudo
 
-**Como avaliar**
-Testaremos variantes com e sem tendência e com diferentes formas de sazonalidade, sem escolher pelo ajuste visual apenas.
-A decisão dependerá do desempenho fora da amostra e da qualidade dos intervalos previstos.
+As séries de Brasil e regiões têm grande autocorrelação de curto prazo e repetição anual. Já muitas UFs são intermitentes: 13 têm mais de 50% das semanas maduras sem casos. Nessas séries, uma regra simples pode ser mais estável do que um modelo que tente estimar tendência e sazonalidade local com poucos eventos.
 
----
+### Como foi avaliado
 
-## 3. SARIMA (ARIMA sazonal)
+As duas referências foram aplicadas nas mesmas 58 origens expansivas e nos mesmos horizontes usados pelos demais modelos. Não receberam informação futura nem foram tratadas como meros exemplos didáticos.
 
-**O que é**
-SARIMA é uma extensão sazonal da família ARIMA para séries com dependência entre observações próximas e entre ciclos anuais.
-Ele combina diferenças, termos autorregressivos e termos de médias móveis nos níveis regular e sazonal.
+### Resultado observado
 
-**Como funciona**
-O modelo pode remover tendências e padrões sazonais por diferenciação antes de representar a dependência restante.
-Depois, usa o comportamento recente dos erros e valores passados para produzir previsões futuras.
+Para Brasil e regiões, o ingênuo é uma referência forte no curtíssimo prazo, mas o ETS amortecido foi melhor em 1 e 4 semanas. Em 8 e 13 semanas, o ingênuo sazonal foi difícil de superar: obteve MASE médio de 1,741 e 1,823, respectivamente.
 
-**Quando faz sentido**
-É adequado quando a série apresenta autocorrelação clara e uma sazonalidade que pode ser capturada de modo consistente.
-É especialmente útil como alternativa ao ETS, pois descreve o histórico por uma lógica diferente.
+Nas UFs, a comparação mostrou um padrão ainda mais claro. Em 1 semana, o ingênuo teve MASE 1,145 contra 2,296 do ingênuo sazonal e venceu nas 27 UFs. Em 4 semanas, venceu em 22 das 27 UFs. Em 8 e 13 semanas, o sazonal voltou a ser melhor em 25 e 27 UFs, respectivamente.
 
-**Exemplo no estudo**
-Suponha que, após considerar o ciclo anual, o número de registros de uma semana ainda dependa fortemente das duas ou três semanas anteriores.
-Um SARIMA pode representar essa memória curta e o efeito da repetição anual ao mesmo tempo.
+### Decisão final
 
-**Pontos fortes**
-Possui diagnóstico estatístico bem estabelecido, com análise de autocorrelação e resíduos.
-Permite verificar se ainda resta estrutura não explicada depois do ajuste, em vez de confiar somente no erro médio.
+As referências não foram descartadas por serem simples. Elas formam a Base V2:
 
-**Cuidados e limites**
-Requer atenção à estacionariedade, à escolha de diferenciações e à parcimônia dos parâmetros.
-Uma especificação excessivamente complexa pode ajustar o passado muito bem e prever mal semanas futuras.
+- **UFs em 1 e 4 semanas:** ingênuo;
+- **UFs em 8 e 13 semanas:** ingênuo sazonal;
+- **Brasil e regiões em 8 e 13 semanas:** ingênuo sazonal.
 
-**O que verificar nos dados**
-Será necessário examinar gráficos, ACF, PACF, diferenciações possíveis e testes de diagnóstico dos resíduos.
-Também precisaremos confirmar se 52 semanas é um período sazonal viável para cada série disponível.
+### Ponto de aprendizagem
 
-**Como avaliar**
-Modelos SARIMA serão comparados por validação temporal e diagnósticos de resíduos, não apenas por AICc.
-Uma boa escolha deve ter desempenho futuro competitivo e resíduos sem dependência relevante remanescente.
+Um baseline não é um modelo “fraco”. Quando ele vence, a conclusão científica é que o conjunto de dados ainda não demonstrou ganho suficiente para justificar uma solução mais complexa naquele horizonte.
 
 ---
 
-## 4. Regressão dinâmica com erros ARIMA (ARIMAX)
+## 2. ETS com tendência amortecida
 
-**O que é**
-É uma regressão que inclui variáveis externas relevantes e trata a dependência temporal que sobra nos erros com um modelo ARIMA.
-Quando há sazonalidade, ela também pode ser representada na parte de regressão ou nos erros.
+### Ideia central
 
-**Como funciona**
-Primeiro, o modelo relaciona a série de internações a informações observadas ao longo do tempo.
-Depois, em vez de assumir que os erros são independentes, ele modela a memória temporal que permaneceu nesses erros.
+ETS é uma família de suavização exponencial que descreve a série por componentes de erro, nível, tendência e sazonalidade. A versão adotada usa tendência amortecida: ela permite movimento recente de crescimento ou queda, mas evita prolongar indefinidamente uma tendência como se ela fosse permanente.
 
-**Quando faz sentido**
-Só deve ser usado se existirem variáveis externas confiáveis, disponíveis no momento real da previsão e justificadas epidemiologicamente.
-Ele não é obrigatório: se não houver covariáveis adequadas, a comparação deve ficar limitada aos modelos univariados.
+De forma intuitiva, o modelo atualiza continuamente seu entendimento de:
 
-**Exemplo no estudo**
-Se fosse demonstrado que uma variável climática ou de vigilância melhora a previsão e está disponível sem atraso, ela poderia entrar como explicativa.
-Por exemplo, o modelo poderia usar uma medida semanal conhecida até a data de corte, sem utilizar informação futura que não estaria disponível na prática.
+- qual é o nível atual de internações;
+- se há movimento recente de alta ou baixa;
+- como o padrão anual se repete;
+- quanto os dados recentes devem pesar em relação ao histórico.
 
-**Pontos fortes**
-Pode incorporar informação que a própria série de internações ainda não capturou.
-Também torna explícito quais dados adicionais estão contribuindo para a estimativa, favorecendo discussão e auditoria.
+### Por que fez sentido neste estudo
 
-**Cuidados e limites**
-Uma associação histórica não prova causalidade nem garante ganho de previsão.
-Há risco de vazamento de informação se uma variável só é divulgada depois da semana que se deseja prever.
+Brasil e regiões têm séries densas, com sazonalidade anual forte, mas com mudanças no nível e na amplitude entre temporadas. Esse é justamente o cenário em que um ETS pode ser útil: há informação suficiente para aprender o ciclo, mas não é desejável assumir tendência linear indefinida.
 
-**O que verificar nos dados**
-Precisamos verificar origem, frequência, qualidade, atraso de divulgação e estabilidade de cada possível variável externa.
-Também é necessário definir como prever a própria covariável para horizontes futuros, quando ela não estiver disponível.
+### Desafio encontrado
 
-**Como avaliar**
-Ele só deve permanecer no conjunto se superar modelos sem covariáveis em validação temporal justa.
-O ganho precisa compensar a maior complexidade, a dependência de novas fontes e o risco operacional.
+A primeira tentativa ETS apresentou avisos e falhas de convergência em parte dos ajustes. Isso não foi ignorado. A Etapa 23B aplicou uma inicialização sazonal heurística, mantendo a mesma tarefa e a mesma estrutura de previsão. Com a inicialização robusta, os 348 ajustes previstos convergiram.
 
----
+Convergir não significa automaticamente prever melhor. Significa que a solução numérica foi obtida de modo estável e pode ser comparada justamente com as referências.
 
-## 5. Previsão hierárquica com reconciliação
+### Resultado observado
 
-**O que é**
-Não é um modelo isolado de geração de previsões, mas uma estratégia para garantir coerência entre níveis geográficos.
-Ela é importante aqui porque as previsões por UF devem ser compatíveis com os totais regionais e nacionais.
+ETS amortecido foi a melhor escolha não hierárquica em curto prazo para Brasil e regiões. Seu MASE médio foi 0,507 em 1 semana e 1,311 em 4 semanas, superando as referências utilizadas nessa comparação. Em 8 e 13 semanas, porém, o ingênuo sazonal foi mais robusto.
 
-**Como funciona**
-Primeiro são geradas previsões para cada nível ou apenas para os níveis mais detalhados.
-Depois, essas previsões são combinadas ou ajustadas para que a soma das UFs forme a região e a soma das regiões forme o Brasil.
+### Decisão final
 
-**Quando faz sentido**
-Faz sentido sempre que houver interesse simultâneo em decisões locais, regionais e nacionais.
-Ela pode ser aplicada sobre diferentes modelos-base, como ingênuo sazonal, ETS ou SARIMA.
+ETS amortecido entra na Base V2 para:
 
-**Exemplo no estudo**
-Se a soma das previsões estaduais do Sudeste for 110 e a previsão regional independente for 95, existe incoerência.
-A reconciliação busca uma previsão final que respeite a estrutura geográfica sem ignorar inteiramente a informação de cada nível.
+- **Brasil em 1 e 4 semanas**;
+- **cinco regiões em 1 e 4 semanas**.
 
-**Pontos fortes**
-Evita relatórios contraditórios entre painéis estaduais, regionais e nacionais.
-Também permite avaliar se o nível agregado, que costuma ser menos ruidoso, ajuda a estabilizar previsões de UFs com poucos registros.
+Ele não foi forçado nos horizontes de 8 e 13 semanas, porque a evidência observada favoreceu a referência sazonal.
 
-**Cuidados e limites**
-Ela não corrige erros na definição do evento, atrasos de notificação ou escolhas ruins dos modelos-base.
-Além disso, uma estratégia de reconciliação deve ser avaliada; coerência contábil não garante necessariamente menor erro.
+### Limites importantes
 
-**O que verificar nos dados**
-Precisamos confirmar a correspondência entre UF, região e Brasil, além de checar se todos os totais são formados pela mesma regra de filtragem.
-Também será necessário identificar se há mudanças territoriais, registros desconhecidos ou duplicidades que quebrem a soma.
-
-**Como avaliar**
-Compararemos previsões coerentes e não reconciliadas no mesmo período de validação, em todos os níveis geográficos.
-A estratégia será mantida se preservar a coerência e melhorar ou, ao menos, não piorar materialmente a utilidade da previsão.
+ETS não explica causalmente as internações. Ele resume padrões da própria série. Também não é indicado como solução única para UFs intermitentes, pois muitas delas não têm sinal local contínuo suficiente para estimar componentes sazonais com a mesma estabilidade dos agregados.
 
 ---
 
-## Ordem inicial de estudo
-Começaremos pelo ingênuo sazonal, ETS e SARIMA, pois usam apenas o histórico da própria série e permitem uma comparação transparente.
-ARIMAX só entra se surgirem covariáveis defensáveis e disponíveis no tempo correto.
-A previsão hierárquica será considerada quando as séries por UF, região e Brasil estiverem organizadas e validadas.
-O resultado não será escolhido por sofisticação: vencerá o método que demonstre utilidade em semanas futuras e comunique sua incerteza com clareza.
+## 3. SARIMA: tentativa de modelar a dependência temporal sazonal
+
+### Ideia central
+
+SARIMA estende a família ARIMA para capturar dependência temporal regular e sazonal. Sua notação é:
+
+\[
+ARIMA(p,d,q)(P,D,Q)_m
+\]
+
+em que os primeiros termos representam a dinâmica de curto prazo e os termos entre parênteses representam a dinâmica sazonal de período \(m\), aproximadamente anual para dados semanais.
+
+Em linguagem simples, SARIMA tenta remover ou modelar tendência e sazonalidade e, depois, explicar como valores e erros passados ajudam a prever o futuro.
+
+### Por que foi testado
+
+A análise exploratória encontrou autocorrelação alta em uma semana e também em 52 e 53 semanas. Logo, seria metodologicamente incompleto não testar uma família desenhada para dependência temporal e sazonalidade.
+
+### Como foi avaliado
+
+Foram usadas as mesmas séries densas, os mesmos cortes temporais e os mesmos horizontes dos demais modelos. Além das métricas, foi exigida cobertura: um método que falha em muitas origens não pode ser declarado vencedor apenas nos casos em que conseguiu ajustar.
+
+### Resultado observado
+
+O SARIMA clássico exigiu muito tempo de execução e não alcançou cobertura estável suficiente. A dificuldade não foi tratada como detalhe de implementação: ela limita a capacidade de reproduzir e usar o modelo de forma confiável em rotina.
+
+### Decisão final
+
+O SARIMA clássico foi **descartado da política final por cobertura e estabilidade insuficientes**. Isso não significa que SARIMA seja inadequado em geral; significa que, nesta base, neste conjunto de especificações e nesta exigência de validação, ele não demonstrou vantagem operacional suficiente.
+
+### Ponto de aprendizagem
+
+Diagnóstico, convergência e cobertura fazem parte do resultado. Um método que fornece ótima previsão apenas em uma parcela das origens não responde integralmente ao problema de previsão recorrente.
 
 ---
 
-## Glossário essencial
+## 4. SARIMAX com harmônicos anuais
 
-- **Série temporal:** valores observados em sequência no tempo, como o total semanal de internações.
-- **Observação:** um valor individual da série; neste estudo, por exemplo, a contagem de uma UF em uma semana.
-- **Frequência:** intervalo entre observações; aqui, a frequência planejada é semanal.
-- **Granularidade:** nível de detalhe do dado, como semana, UF, região ou Brasil.
-- **Tendência:** movimento persistente de crescimento, queda ou estabilidade ao longo de muitos períodos.
-- **Sazonalidade:** padrão que tende a se repetir em determinados momentos do calendário, como ao longo do ano.
-- **Ruído:** variação aleatória que não representa um padrão persistente ou previsível.
-- **Autocorrelação:** relação entre o valor atual da série e seus próprios valores passados.
-- **Estacionariedade:** situação em que as propriedades básicas da série se mantêm relativamente estáveis ao longo do tempo.
-- **Horizonte de previsão:** quantas semanas à frente se deseja estimar.
-- **Linha de base:** método simples usado como referência obrigatória para avaliar se modelos mais complexos realmente agregam valor.
-- **Validação temporal:** avaliação que respeita a ordem dos acontecimentos, prevendo apenas períodos que ainda não eram conhecidos.
-- **Fora da amostra:** dados futuros que não foram usados para ajustar o modelo e servem para testar sua capacidade real de previsão.
-- **Sobreajuste:** quando o método aprende detalhes acidentais do passado, mas tem baixo desempenho em semanas futuras.
-- **Intervalo de previsão:** faixa que expressa a incerteza em torno de uma estimativa, e não apenas um valor único.
-- **Covariável:** informação adicional que pode ajudar a previsão, desde que esteja disponível no momento correto.
-- **Atraso de notificação:** diferença entre a ocorrência do evento e sua entrada completa no sistema de vigilância.
-- **Vazamento de informação:** uso indevido de dados do futuro durante o ajuste ou a avaliação de uma previsão.
-- **Série hierárquica:** conjunto de séries com níveis que se somam, como UFs, regiões e Brasil.
-- **Reconciliação:** ajuste das previsões para que os totais de UFs, regiões e Brasil permaneçam coerentes entre si.
+### Ideia central
+
+Depois da instabilidade do SARIMA clássico, foi testada uma alternativa: representar o ciclo anual por funções seno e cosseno, chamadas de harmônicos, dentro de um modelo SARIMAX. Para o tempo \(t\), um par harmônico pode ser escrito como:
+
+\[
+\sin(2\pi kt/m) \quad \text{e} \quad \cos(2\pi kt/m)
+\]
+
+Os harmônicos descrevem ondas anuais suaves. A parte ARIMA/SARIMAX modela a dependência que permanece depois de considerar essas ondas.
+
+### Diferença para uma regressão dinâmica geral
+
+No planejamento inicial, a ideia de ARIMAX incluía possíveis covariáveis externas, como clima ou indicadores de vigilância. Essas covariáveis **não foram incluídas** no resultado final porque seria necessário demonstrar disponibilidade sem atraso, qualidade, cobertura nacional e ausência de vazamento de informação. O SARIMAX harmônico usado aqui é diferente: os termos externos são funções determinísticas do próprio calendário, conhecidas antecipadamente.
+
+### Por que foi testado
+
+O objetivo foi preservar uma representação flexível da sazonalidade anual sem estimar uma estrutura SARIMA sazonal clássica excessivamente custosa ou instável.
+
+### Resultado observado
+
+O SARIMAX harmônico apresentou estabilidade de execução e cobertura completa, mas não superou ETS em 1 e 4 semanas nem o ingênuo sazonal em 8 e 13 semanas. Portanto, a estabilidade melhorou, mas não houve ganho preditivo suficiente para alterar a escolha final.
+
+### Decisão final
+
+O método permanece documentado como tentativa válida e reproduzível, mas não integra a política operacional. Ele pode ser reavaliado no futuro se houver nova janela independente, mudança no padrão sazonal ou covariáveis futuras devidamente validadas.
+
+### Ponto de aprendizagem
+
+Resolver a convergência de uma família não obriga sua adoção. Um modelo precisa superar alternativas mais simples no objetivo que realmente importa: prever o futuro.
+
+---
+
+## 5. Previsão hierárquica e reconciliação
+
+### Ideia central
+
+Previsão hierárquica não é um único modelo gerador. É uma forma de combinar previsões em níveis que se somam. Neste trabalho:
+
+\[
+27\ \text{UFs} \longrightarrow 5\ \text{regiões} \longrightarrow Brasil
+\]
+
+Uma previsão coerente precisa satisfazer simultaneamente:
+
+\[
+\text{Região} = \sum \text{UFs da região}
+\]
+
+\[
+\text{Brasil} = \sum \text{cinco regiões}
+\]
+
+### Por que foi necessária
+
+As melhores previsões independentes em cada nível podem não somar corretamente. Isso ocorreu na Base V2 em 1 e 4 semanas porque Brasil e regiões usam ETS, enquanto UFs usam ingênuo. Não é erro: são modelos independentes com sinais diferentes. Mas é um problema se a intenção é divulgar, na mesma reunião ou boletim, UFs, regiões e Brasil.
+
+### Base V2: ponto de partida da reconciliação
+
+Base V2 não é uma nova base de dados. É a coleção de previsões independentes escolhidas após a comparação não hierárquica:
+
+- Brasil e regiões: ETS amortecido em 1 e 4 semanas; ingênuo sazonal em 8 e 13;
+- UFs: ingênuo em 1 e 4 semanas; ingênuo sazonal em 8 e 13.
+
+Em 8 e 13 semanas, todos os níveis usam a mesma regra sazonal e já são coerentes por construção. O desafio de reconciliação está concentrado em 1 e 4 semanas.
+
+### Métodos comparados
+
+| Método | Como funciona | Resultado neste estudo |
+|---|---|---|
+| Bottom-up | Soma as previsões das UFs para obter regiões e Brasil | Coerente, mas piorou previsões agregadas em curto prazo. |
+| Top-down global | Parte do agregado e distribui por proporções médias | Coerente, mas não trouxe ganho uniforme. |
+| Top-down sazonal | Distribui o agregado usando proporções sazonais | Ajudou UFs em horizontes longos, mas não foi melhor em curto prazo. |
+| WLS estrutural | Ajusta todos os nós ponderando a estrutura hierárquica | Coerente, porém gerou valores negativos materiais. |
+| MinT-OAS | Usa estrutura regularizada dos erros de previsão | Coerente, mas também gerou negativos sem restrição. |
+| MinT não negativo | Impõe UFs maiores ou iguais a zero dentro da otimização | Coerente, não negativo e melhor compromisso operacional em curto prazo. |
+
+### O que é MinT
+
+MinT significa *minimum trace*. Ele reconcilia previsões usando uma estimativa da covariância dos erros, dando mais peso relativo a informações consideradas mais confiáveis. A covariância bruta, neste estudo, foi instável porque algumas UFs têm séries muito esparsas. Por isso, foi aplicado *shrinkage* OAS, que aproxima a matriz de covariância de uma forma mais estável sem apagar totalmente as relações observadas.
+
+### Por que a não negatividade foi necessária
+
+WLS estrutural e MinT-OAS, sem restrição, geraram previsões negativas. Cortar esses valores para zero depois da reconciliação quebraria as somas hierárquicas. A solução foi incluir a condição de não negatividade dentro da otimização das 27 UFs e formar regiões e Brasil pela soma dessas folhas.
+
+As 232 otimizações previstas convergiram. A diferença máxima de agregação foi 8,64 × 10⁻¹¹, que é somente imprecisão numérica de máquina. Nenhuma previsão final ficou negativa.
+
+### Resultado observado
+
+Em 1 semana, o MASE das UFs caiu de 1,145 na Base V2 para 1,133 com MinT não negativo; em 4 semanas, caiu de 2,285 para 2,211. As regiões também melhoraram levemente em uma semana, de 0,545 para 0,534. O custo foi pequena piora para Brasil em uma e quatro semanas e para regiões em quatro semanas.
+
+### Decisão final
+
+MinT não negativo foi escolhido para 1 e 4 semanas **quando a saída precisa conter todos os níveis geográficos coerentes**. Ele não substitui automaticamente a Base V2 para um boletim nacional isolado, onde a Base V2 teve menor erro médio de curto prazo.
+
+---
+
+## Política final por horizonte
+
+| Horizonte | Método operacional | Objetivo priorizado |
+|---|---|---|
+| 1 semana | MinT não negativo | Coerência, contagens possíveis e melhoria das UFs. |
+| 4 semanas | MinT não negativo | Mesmo compromisso para planejamento mensal aproximado. |
+| 8 semanas | Base V2 sazonal | A previsão sazonal já é coerente e a reconciliação não trouxe ganho. |
+| 13 semanas | Base V2 sazonal | Cenário sazonal de maior prazo, com incerteza ampla. |
+
+Essa política é uma regra condicionada ao uso. Ela não afirma que existe um único “melhor modelo” para toda situação.
+
+## Como os intervalos de incerteza entram na resposta
+
+As previsões pontuais foram complementadas por faixas empíricas de 80% e 95%, formadas pelos resíduos da política final nos 58 cortes temporais. Elas respondem à pergunta “quão diferente do ponto previsto o resultado pode ser, considerando erros semelhantes no passado?”.
+
+As faixas de 80% tiveram cobertura retrospectiva entre 76,9% e 78,4%; as de 95%, entre 89,7% e 93,1%. Portanto, devem ser chamadas de faixas empíricas de incerteza, não de garantias probabilísticas formais. Seus limites são marginais e não necessariamente se somam na hierarquia, embora os pontos previstos sejam coerentes.
+
+## O que não foi feito e por quê
+
+- **Deep learning:** não foi necessário para responder ao problema atual. Há apenas 395 semanas maduras por série densa e várias UFs são intermitentes. Sem validação externa adicional, uma rede neural aumentaria o risco de sobreajuste e dificultaria a interpretação sem garantia de ganho.
+- **Covariáveis externas:** clima, dados demográficos ou outros indicadores poderiam ser estudados, mas só entram se estiverem disponíveis no momento correto, sem atraso, e se melhorarem a validação temporal. Não foram adicionados apenas por plausibilidade narrativa.
+- **Correção manual da previsão operacional:** não foi feita. A previsão de julho de 2026 recebeu alerta de discordância excepcional entre níveis, mas não foi alterada depois de observada, pois isso seria seleção pós-hoc.
+- **Um modelo único para todas as UFs:** foi evitado porque os dados demonstraram intermitência e volume muito diferentes entre as unidades.
+
+## Glossário atualizado
+
+- **Autocorrelação:** relação entre uma observação da série e seus próprios valores passados.
+- **Base V2:** conjunto de melhores previsões independentes por nível e horizonte; não é uma nova base de microdados.
+- **Baseline ou linha de base:** previsão simples que todo método mais complexo precisa superar.
+- **Cobertura:** proporção de cortes em que o modelo conseguiu gerar previsão válida.
+- **Coerência hierárquica:** propriedade de as previsões de UFs, regiões e Brasil respeitarem suas somas.
+- **Convergência:** situação em que o algoritmo de ajuste encontrou uma solução numérica estável segundo seus critérios.
+- **Covariância dos erros:** medida de como erros de previsão de diferentes nós tendem a variar juntos.
+- **ETS:** família de suavização exponencial com componentes de erro, nível, tendência e sazonalidade.
+- **Faixa empírica:** intervalo obtido a partir da distribuição dos erros históricos, sem garantia probabilística perfeita.
+- **Horizonte:** número de semanas à frente que se deseja prever.
+- **Ingênuo:** método que repete o último valor observado.
+- **Ingênuo sazonal:** método que repete a referência da temporada anterior.
+- **MAE:** média dos erros absolutos, em número de casos.
+- **MASE:** MAE escalonado por uma referência simples; permite comparar séries de tamanhos distintos.
+- **MinT:** método de reconciliação que busca minimizar uma medida ponderada dos erros dentro da hierarquia.
+- **Não negatividade:** restrição de que contagens previstas sejam iguais ou maiores que zero.
+- **Origem de previsão:** última semana conhecida quando uma previsão é emitida.
+- **Previsão fora da amostra:** previsão de um período que não foi usado para ajustar o modelo.
+- **Reconciliação:** ajuste de previsões para torná-las coerentes entre níveis geográficos.
+- **RMSE:** raiz do erro quadrático médio; penaliza mais fortemente erros grandes.
+- **SARIMA:** modelo ARIMA com componentes sazonais.
+- **SARIMAX harmônico:** SARIMAX que representa sazonalidade por senos e cossenos do calendário.
+- **Sazonalidade:** padrão que tende a se repetir em certos períodos do calendário.
+- **Shrinkage OAS:** regularização que torna a estimativa de covariância mais estável.
+- **Série intermitente:** série com muitos períodos de contagem zero.
+- **Tendência amortecida:** tendência cuja projeção é reduzida gradualmente, evitando extrapolação indefinida.
+- **Validação temporal expansiva:** avaliação em que o treino cresce ao longo do tempo e nenhum dado futuro entra no ajuste.
+- **Vazamento temporal:** uso de informações futuras durante o treino ou a avaliação.
+
+## Leituras e fontes metodológicas
+
+- Hyndman, R. J. e Athanasopoulos, G. [Forecasting: Principles and Practice](https://otexts.com/fpp3/).
+- Hyndman, R. J. et al. [Optimal combination forecasts for hierarchical time series](https://collaborate.robjhyndman.com/publications/hierarchical/), 2011.
+- Wickramasuriya, S. L., Athanasopoulos, G. e Hyndman, R. J. [Optimal forecast reconciliation for hierarchical and grouped time series through trace minimization](https://robjhyndman.com/papers/MinT.pdf), 2019.
+
+## Relação com os resultados do projeto
+
+Os scripts, tabelas e gráficos que sustentam este guia estão documentados em `MODELAGEM_AVALIACAO_3_ETAPA/EXPLICACAO_DAS_DECISOES_MODELAGEM_AVALIACAO_V2.md` e nos resultados locais em `/home/thiago/Series-Temporais-Trabalho/execucao_local_vsr/saidas/`.
