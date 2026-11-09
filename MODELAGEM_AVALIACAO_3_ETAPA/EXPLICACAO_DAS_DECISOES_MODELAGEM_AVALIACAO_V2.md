@@ -231,11 +231,13 @@ Em uma semana, a referência ingênua venceu nas 27 UFs; em quatro semanas, venc
 
 ## Etapa 30 — Previsões-base hierárquicas V2
 
-A versão V2 aplicou a política revisada das UFs, mantendo a política já aprovada para Brasil e regiões. Foram novamente geradas 7.656 previsões completas, sem ausências, duplicidades ou valores negativos.
+A Base V2 não é uma nova base de dados, nem uma nova família de modelos. Ela é a coleção revisada de previsões-base, isto é, as previsões independentes que todos os métodos de reconciliação recebem como entrada. A Base V1 usava referência sazonal em todas as UFs. A V2 preserva as escolhas para Brasil e regiões — ETS amortecido em uma e quatro semanas; ingênuo sazonal em oito e 13 — e aplica a evidência da Etapa 29 às UFs: ingênuo em uma e quatro semanas; ingênuo sazonal em oito e 13 semanas.
+
+Foram novamente geradas 7.656 previsões completas, sem ausências, duplicidades ou valores negativos. Por serem produzidas separadamente em cada nó, as previsões da Base V2 ainda não são necessariamente coerentes entre Brasil, regiões e UFs: ela é uma referência comum de comparação, e não uma previsão operacional única.
 
 A mudança reduziu substancialmente a incoerência de curto prazo, mas não a eliminou: no Brasil, o MAE da diferença entre a previsão direta e a soma das UFs caiu de 253,4 para 53,1 em uma semana e de 334,0 para 166,0 em quatro semanas. Em oito e 13 semanas, a referência sazonal aplicada em todos os níveis já era coerente por construção.
 
-**Decisão.** A Base V2 é a referência comum para avaliar os métodos de reconciliação. Ela é deliberadamente mantida sem reconciliação para que possamos medir o custo ou ganho de forçar coerência.
+**Decisão.** A Base V2 é a referência comum para avaliar os métodos de reconciliação. Ela é deliberadamente mantida sem reconciliação para que possamos medir o custo ou ganho de forçar coerência. Em oito e 13 semanas ela já é coerente por construção; o desafio metodológico real permanece concentrado em uma e quatro semanas.
 
 ## Etapa 31 — Reconciliação bottom-up
 
@@ -271,7 +273,114 @@ Há uma limitação operacional decisiva: a reconciliação WLS produziu previs�
 
 **Decisão.** A reconciliação estrutural WLS é um comparador tecnicamente válido e demonstra que coerência, por si só, não garante melhor previsão. Ela não será adotada como política operacional final, devido à piora agregada em curto prazo e às previsões negativas em UFs e regiões.
 
-## Conclusões provisórias
+## Etapa 34 — Janela de calibração temporal para MinT
+
+O MinT não escolhe os ajustes apenas pela posição do nó na árvore. Ele precisa estimar como os erros das previsões-base variam e se movem conjuntamente entre Brasil, regiões e UFs. Para evitar que essa informação use o mesmo futuro dos cortes formais de avaliação, criamos uma janela histórica de calibração separada: 39 origens entre dezembro de 2020 e setembro de 2021, com alvos até dezembro de 2021. Foram obtidos 5.148 erros de previsão, equivalentes a 39 origens × quatro horizontes × 33 nós.
+
+A estimação bruta da covariância revelou o problema esperado para esta aplicação: há 33 nós, mas apenas 39 origens, e algumas UFs são muito intermitentes. A matriz ficou de posto 32 nos horizontes de uma e quatro semanas e de posto 26 nos horizontes de oito e 13; além disso, Acre apresentou variância nula nessa janela. Portanto, a inversão direta da covariância seria numericamente instável. Isso não invalida a abordagem, mas torna indispensável o uso de *shrinkage* (regularização) e um piso mínimo de variância.
+
+Há uma limitação que deve permanecer explícita: a janela de calibração atravessa o período da pandemia de COVID-19. Ela é temporalmente válida e não contém vazamento dos alvos formais, mas a sua estrutura de erro pode não representar integralmente o padrão pós-pandemia.
+
+**Decisão.** A calibração foi aprovada somente com covariância regularizada. Não será usado MinT com inversão empírica bruta.
+
+## Etapa 35 — MinT com covariância regularizada por shrinkage OAS
+
+Aplicamos MinT com a covariância estimada por *Oracle Approximating Shrinkage* (OAS), que aproxima a matriz empírica de uma estrutura mais estável sem ignorar completamente as correlações observadas. O procedimento produziu 7.656 previsões, 100% coerentes, com matrizes de projeção numericamente válidas. Os pesos de shrinkage ficaram entre 0,239 e 0,529; cinco nós por horizonte receberam piso de variância para impedir singularidade.
+
+O resultado foi misto. Em uma semana, o MASE das regiões melhorou de 0,545 para 0,534, mas Brasil passou de 0,315 para 0,330 e UFs de 1,145 para 1,146. Em quatro semanas, Brasil, regiões e UFs pioraram levemente. Em oito e 13 semanas os resultados coincidem na prática com a Base V2, porque ela já é coerente nesses horizontes.
+
+O maior impedimento foi operacional: o MinT sem restrição produziu negativos materiais. Houve 269 previsões negativas de UF em uma semana e 312 em quatro semanas; em regiões, cinco e 18, respectivamente. Os mínimos foram −8,21 e −127,59 nas UFs. Não é aceitável comunicar previsão negativa de internações e o simples corte para zero quebraria novamente a coerência.
+
+**Decisão.** MinT-OAS é metodologicamente válido como comparador orientado pelos erros, mas não é adotado de forma operacional sem uma restrição explícita de não negatividade.
+
+## Etapa 36 — MinT não negativo com restrição nas UFs
+
+Nesta etapa não truncamos previsões após a reconciliação. Resolvemos, em cada origem e horizonte, o problema de MinT com restrição de que as 27 previsões das UFs sejam maiores ou iguais a zero. As regiões e o Brasil são então calculados pela matriz de agregação. Assim, a solução continua sendo a previsão mais próxima da MinT no critério ponderado, mas passa a respeitar simultaneamente coerência e não negatividade.
+
+As 7.656 previsões foram concluídas com sucesso. As 232 otimizações convergiram; a restrição foi ativa em 48 das 58 origens no horizonte de uma semana e em 53 das 58 no de quatro semanas, evidenciando que ela corrige um problema real, não apenas numérico. Todas as previsões ficaram não negativas e coerentes, com diferença máxima de agregação de apenas 8,64 × 10⁻¹¹, compatível com precisão computacional.
+
+Nos horizontes curtos, a solução trouxe o principal ganho para o nível que mais sofre com intermitência: nas UFs, o MASE caiu de 1,145 para 1,133 em uma semana e de 2,285 para 2,211 em quatro semanas. Nas regiões, houve melhora em uma semana (0,545 para 0,534). O custo foi pequena piora no Brasil em uma semana (0,315 para 0,332) e em quatro semanas (1,110 para 1,202), além de piora regional em quatro semanas. Em oito e 13 semanas a Base V2 já era coerente e não negativa; não havia ganho a buscar.
+
+**Decisão.** O MinT não negativo é o melhor candidato para previsões coerentes de uma e quatro semanas quando a decisão exige simultaneamente UFs, regiões e Brasil. Ele não é apresentado como vencedor absoluto do Brasil isolado, mas como o melhor compromisso hierárquico operacional encontrado.
+
+## Etapa 37 — Comparação final e política proposta por horizonte
+
+Foram comparadas sete estratégias nos mesmos 7.656 pares de previsão e alvo: Base V2, bottom-up, top-down global, top-down sazonal, WLS estrutural, MinT-OAS e MinT não negativo. A tabela final contém 53.592 previsões; cada estratégia foi conferida quanto a chaves únicas, valores ausentes, não negatividade e coerência.
+
+A recomendação não força um vencedor único onde os dados não o sustentam. Para uma e quatro semanas, a política proposta usa MinT não negativo: é coerente, não gera contagens impossíveis e melhora o MASE das UFs nos dois horizontes. Para oito e 13 semanas, preserva a Base V2: a sazonalidade já torna essas previsões coerentes por construção, sem benefício demonstrado de uma reconciliação adicional. A política final gerou 7.656 previsões, sem valores negativos e com coerência total.
+
+| Horizonte | Política proposta | Justificativa |
+|---|---|---|
+| 1 semana | MinT não negativo | Coerência total, não negatividade e melhora do MASE das UFs; custo nacional pequeno e explicitado. |
+| 4 semanas | MinT não negativo | Coerência total, não negatividade e melhora do MASE das UFs; há perda nos agregados, que deve ser considerada conforme o uso. |
+| 8 semanas | Base V2 | A referência sazonal já é coerente e não negativa; a reconciliação não trouxe ganho adicional. |
+| 13 semanas | Base V2 | Mesma justificativa de oito semanas, com melhor estabilidade sazonal observada. |
+
+Essa é uma política proposta com base nos 58 cortes formais, não uma validação externa totalmente intocada: as escolhas de modelo e de reconciliação foram feitas na própria estrutura de validação. A entrega final deve declarar essa limitação e, se houver nova atualização de dados, aplicar a política a uma janela futura independente.
+
+**Decisão.** O trabalho encerra a comparação hierárquica com uma recomendação condicionada ao horizonte e ao objetivo. Para previsão nacional isolada em curto prazo, a Base V2 direta pode ter menor erro; para um boletim único, utilizável e consistente entre UF, região e Brasil, a política hierárquica proposta é a escolha metodológica mais defensável.
+
+## Etapa 38 — Geração da previsão operacional final
+
+Após encerrar a validação retrospectiva, aplicamos a política proposta à última semana madura, 19 de julho de 2026. Esta etapa não estima desempenho futuro: ela demonstra como a política se comporta quando produz uma previsão nova, sem conhecer os alvos posteriores. Foram geradas 132 previsões: 33 nós da hierarquia nos horizontes de uma, quatro, oito e 13 semanas, com datas-alvo entre 26 de julho e 18 de outubro de 2026.
+
+Os seis ajustes ETS de Brasil e regiões convergiram na primeira tentativa. Em uma e quatro semanas, a reconciliação MinT não negativa também convergiu, respectivamente em oito e dez iterações. Em ambos os casos, a restrição foi ativa: a solução MinT sem restrição continha folhas negativas, com mínimos de −8,95 em uma semana e −196,37 em quatro. A solução final não contém previsões negativas e é coerente em todos os níveis; a maior diferença de agregação foi 1,14 × 10⁻¹³.
+
+| Horizonte | Previsão-base do Brasil | Previsão operacional final | Estratégia |
+|---|---:|---:|---|
+| 1 semana | 622,0 | 751,2 | MinT não negativo |
+| 4 semanas | 5,5 | 556,4 | MinT não negativo |
+| 8 semanas | 187,0 | 187,0 | Base V2 sazonal |
+| 13 semanas | 83,0 | 83,0 | Base V2 sazonal |
+
+O valor de 5,5 casos da previsão ETS direta do Brasil em quatro semanas é muito diferente da soma de 892 previsões ingênuas das UFs. O MinT reconciliado resolve esse conflito de forma coerente e não negativa, mas a magnitude da mudança precisa ser examinada antes de interpretar a projeção como uma estimativa pontual estável.
+
+**Decisão.** A execução operacional foi aprovada quanto à integridade computacional, mas a previsão curta foi encaminhada a um diagnóstico adicional de plausibilidade. Nenhum valor foi alterado ad hoc e nenhuma previsão foi descartada.
+
+## Etapa 38A — Diagnóstico de plausibilidade dos ajustes operacionais
+
+Comparamos os ajustes entre Base V2 e MinT não negativo na previsão operacional com a distribuição desses mesmos ajustes nos 58 cortes formais. O objetivo não era selecionar outro método após observar a previsão atual, mas verificar se a reconciliação estava atuando dentro de uma faixa historicamente observada.
+
+Dos 66 nós avaliados em uma e quatro semanas, 21 tiveram ajuste acima do percentil 95 histórico e sete ultrapassaram o maior ajuste observado no período de validação. No Brasil, o ajuste operacional foi de 129,2 casos em uma semana, acima do máximo histórico de 100,6; em quatro semanas, foi de 551,0, acima do máximo histórico de 366,6 e quase quatro vezes o percentil 95 de 141,7. Houve também alertas relevantes no Sudeste, em São Paulo e em algumas UFs do Sul.
+
+Isso não é um erro de programação nem invalida a comparação da Etapa 37. O diagnóstico revela uma discordância excepcional entre o ETS direto dos agregados e a persistência ingênua usada nas UFs naquele instante do ciclo epidêmico. A previsão final permanece matematicamente coerente e não negativa, porém extrapola a faixa usual de ajustes da reconciliação histórica.
+
+**Decisão.** A política por horizonte permanece como resultado da avaliação formal. A saída operacional de 19 de julho de 2026 deve ser comunicada como cenário reconciliado com alerta de alta discordância, e não como uma previsão pontual de certeza. Não adotamos uma regra nova após observar esse caso, pois isso seria seleção pós-hoc sem validação independente.
+
+## Etapa 39 — Faixas empíricas de incerteza
+
+Como complemento às previsões pontuais, construímos faixas empíricas de 80% e 95% usando os resíduos da política hierárquica final nos 58 cortes temporais. Para cada nó e horizonte, o intervalo é formado pelos quantis históricos do resíduo observado menos previsão. A cobertura foi avaliada por validação *leave-one-out*: para cada corte, seus próprios resíduos foram removidos antes de verificar se o alvo caiu dentro da faixa.
+
+Foram produzidas 132 faixas, uma para cada nó e horizonte, sem valores ausentes ou limites inválidos. As coberturas médias de 80% ficaram entre 76,9% e 78,4% nos diferentes níveis e horizontes, próximas do valor nominal. As coberturas médias de 95% ficaram entre 89,7% e 93,1%; portanto, as faixas são informativas, mas não devem ser apresentadas como garantias probabilísticas formais.
+
+| Horizonte | Brasil: previsão pontual | Faixa empírica de 80% | Faixa empírica de 95% |
+|---|---:|---:|---:|
+| 1 semana | 751 | 668–829 | 606–892 |
+| 4 semanas | 556 | 268–914 | 0–1.097 |
+| 8 semanas | 187 | 0–693 | 0–1.267 |
+| 13 semanas | 83 | 0–569 | 0–1.126 |
+
+O aumento expressivo da largura em quatro, oito e 13 semanas confirma a leitura epidemiológica anterior: a previsão de curtíssimo prazo é mais informativa, enquanto horizontes mais longos devem apoiar planejamento por faixas de demanda, não estimativas exatas de internações. As faixas foram limitadas inferiormente em zero, pois contagens negativas não são possíveis.
+
+Os intervalos são marginais: a coerência é garantida para as previsões pontuais, mas os limites inferior e superior de cada nó não somam necessariamente entre UFs, regiões e Brasil. Esse limite será declarado na entrega final.
+
+**Decisão.** As faixas empíricas serão apresentadas como medida de incerteza operacional da política final. Elas não modificam a previsão pontual, não selecionam um novo modelo e não substituem uma avaliação futura independente.
+
+## Etapa 40 — Consolidação final dos resultados
+
+Nesta etapa reunimos, sem recalcular qualquer modelo, as evidências finais da avaliação: métricas da Base V2 e da política hierárquica, decisões por horizonte, previsão operacional do Brasil, faixas de incerteza, alertas de plausibilidade e limitações. O propósito foi transformar os resultados distribuídos nas etapas anteriores em quadros e gráficos diretamente utilizáveis no relatório e na apresentação.
+
+O quadro de desempenho confirma que não existe vencedor único para todos os objetivos. A política hierárquica melhora as UFs em uma semana (MASE de 1,145 para 1,133) e quatro semanas (2,285 para 2,211), além de melhorar as regiões em uma semana (0,545 para 0,534). Em contrapartida, a Base V2 direta é melhor para Brasil em uma e quatro semanas e para regiões em quatro semanas. Em oito e 13 semanas, Base V2 e política são idênticas porque a referência sazonal já é coerente por construção.
+
+Essa comparação fundamenta a decisão principal do estudo: a política hierárquica não é apresentada como o menor erro em cada nível isolado. Ela é adotada quando é necessário divulgar simultaneamente previsões utilizáveis de UFs, regiões e Brasil, respeitando soma hierárquica e não negatividade. Para uma previsão nacional isolada, a Base V2 direta pode continuar preferível nos horizontes curtos.
+
+A consolidação também trouxe a previsão operacional do Brasil e suas faixas empíricas: 751 casos em uma semana, com faixa de 80% entre 668 e 829; 556 em quatro semanas, com faixa entre 268 e 914. Os horizontes de oito e 13 semanas possuem faixas muito mais amplas, reforçando que o uso mais responsável dessas previsões é apoiar cenários de planejamento, e não anunciar uma quantidade exata de internações futuras.
+
+Os quadros de alertas preservam a ressalva encontrada na Etapa 38A: houve alerta de ajuste excepcional no Brasil em uma e quatro semanas, dois e um alertas em regiões, e oito alertas em UFs em cada horizonte curto. Esses alertas não invalidam a política retrospectivamente avaliada; qualificam a interpretação da aplicação operacional específica de julho de 2026.
+
+**Decisão.** A fase computacional foi encerrada. A entrega final deve apresentar conjuntamente: desempenho por nível e horizonte, a política escolhida, previsão operacional acompanhada de incerteza e as limitações metodológicas. Não será incluído um modelo novo após a consolidação, evitando seleção pós-hoc.
+
+## Conclusões atualizadas
 
 1. A base madura e o calendário temporal permitem comparação reprodutível sem vazamento de informação futura.
 2. ETS com tendência amortecida é a melhor referência para previsões de uma e quatro semanas em Brasil e regiões.
@@ -279,19 +388,24 @@ Há uma limitação operacional decisiva: a reconciliação WLS produziu previs�
 4. A inicialização heurística resolveu a instabilidade do ETS sem alterar a definição do problema de previsão.
 5. Os SARIMA clássicos não atingiram cobertura suficiente e foram descartados de forma transparente.
 6. O SARIMAX harmônico entregou estabilidade completa, mas não superou os melhores métodos nos horizontes avaliados.
-7. A escolha não hierárquica atual é preliminar e depende do horizonte.
+7. A escolha não hierárquica atual depende do horizonte; ela é convertida em uma política hierárquica somente quando é necessário divulgar todos os níveis geográficos simultaneamente.
 8. A hierarquia geográfica histórica é exata, mas a alta intermitência em várias UFs exige uma reconciliação cuidadosa e avaliação por nível geográfico.
 9. A política das UFs depende do horizonte: ingênua em uma e quatro semanas; ingênua sazonal em oito e 13 semanas.
 10. Bottom-up, top-down e WLS estrutural obtêm coerência, mas nenhum é uniformemente melhor que a Base V2 em todos os níveis e horizontes.
-11. A presença de previsões negativas no WLS estrutural impede seu uso operacional direto para contagem de internações.
+11. WLS estrutural e MinT-OAS sem restrição produziram previsões negativas materiais; portanto, não servem diretamente para contagem de internações.
+12. A calibração de MinT exigiu shrinkage porque a covariância empírica é deficiente de posto e algumas UFs têm variância muito baixa; a janela atravessa a pandemia e deve ser interpretada com cautela.
+13. MinT não negativo preservou coerência e não negatividade e melhorou as UFs em uma e quatro semanas, aceitando um custo explícito nas previsões agregadas.
+14. A recomendação final é uma política por horizonte: MinT não negativo em uma e quatro semanas; Base V2 em oito e 13 semanas.
+15. A primeira aplicação operacional confirmou a integridade da política, mas exibiu ajustes de curto prazo acima da faixa histórica; previsões futuras devem ser acompanhadas de diagnóstico de discordância entre níveis.
+16. As faixas empíricas de incerteza tiveram cobertura retrospectiva próxima, mas abaixo, dos níveis nominais; devem ser comunicadas como referência operacional marginal, não como garantia probabilística nem como intervalos hierarquicamente coerentes.
+17. A consolidação final demonstra que a escolha metodológica depende do objetivo: a Base V2 favorece alguns agregados isolados, enquanto a política hierárquica favorece previsões coerentes e não negativas para decisão articulada entre os três níveis geográficos.
 
-## Próximos passos aprovados
+## Próximos passos para a entrega final
 
-1. Construir uma estimativa de covariância dos erros de previsão sem usar informação futura em cada origem de validação.
-2. Avaliar MinT com shrinkage como reconciliação orientada pelos erros empíricos, e não apenas pela posição de cada nó na árvore.
-3. Comparar Base V2, bottom-up, top-down, WLS estrutural e MinT separadamente em Brasil, regiões e UFs, por horizonte.
-4. Manter a coerência como requisito, mas não aceitar um método que gere previsões negativas materiais ou que piore de forma relevante os níveis agregados.
-5. Registrar a decisão final como uma política por horizonte e por nível geográfico, caso os resultados não sustentem um vencedor único.
+1. Elaborar o relatório e a apresentação final a partir dos quadros consolidados, sem modificar a política após observar a previsão operacional.
+2. Distinguir claramente previsão nacional isolada, previsão hierárquica coerente e cenário operacional sob alta discordância.
+3. Registrar como limitações a escolha nos cortes formais, a calibração de covariância no período pandêmico, o alerta operacional encontrado na Etapa 38A e o caráter marginal das faixas da Etapa 39.
+4. Quando houver dados futuros suficientes, avaliar a política em uma janela inteiramente nova, sem reutilizar os mesmos cortes, e acompanhar a frequência dos alertas de discordância.
 
 ## Referências metodológicas
 
@@ -317,3 +431,11 @@ Há uma limitação operacional decisiva: a reconciliação WLS produziu previs�
 - Etapa 31: `resultados_scripts/etapa_31_reconciliacao_bottom_up/`.
 - Etapa 32: `resultados_scripts/etapa_32_reconciliacao_top_down/`.
 - Etapa 33: `resultados_scripts/etapa_33_reconciliacao_estrutural/`.
+- Etapa 34: `resultados_scripts/etapa_34_calibracao_temporal_mint/`.
+- Etapa 35: `resultados_scripts/etapa_35_reconciliacao_mint_shrink/`.
+- Etapa 36: `resultados_scripts/etapa_36_mint_nao_negativo/`.
+- Etapa 37: `resultados_scripts/etapa_37_comparacao_final_hierarquica/`.
+- Etapa 38: `resultados_scripts/etapa_38_previsao_operacional_final/`.
+- Etapa 38A: `resultados_scripts/etapa_38a_diagnostico_plausibilidade_operacional/`.
+- Etapa 39: `resultados_scripts/etapa_39_intervalos_incerteza/`.
+- Etapa 40: `resultados_scripts/etapa_40_consolidacao_final/`.

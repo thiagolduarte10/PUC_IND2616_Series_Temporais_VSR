@@ -1,0 +1,5 @@
+horizonte_semanas,estrategia_adotada,objetivo,justificativa
+1,MINT_OAS_NAO_NEGATIVO,"Previsão coerente entre UFs, regiões e Brasil","Melhorou o MASE das UFs, preservou não negatividade e coerência."
+4,MINT_OAS_NAO_NEGATIVO,"Previsão coerente entre UFs, regiões e Brasil",Melhorou o MASE das UFs; perdas nos agregados foram registradas explicitamente.
+8,BASE_V2_SAZONAL,Previsão sazonal estável de médio prazo,Já era coerente e não negativa; reconciliação adicional não trouxe ganho.
+13,BASE_V2_SAZONAL,Planejamento sazonal de prazo mais longo,Já era coerente e não negativa; reconciliação adicional não trouxe ganho.

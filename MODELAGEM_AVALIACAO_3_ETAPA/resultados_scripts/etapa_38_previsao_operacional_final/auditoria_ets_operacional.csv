@@ -1,0 +1,7 @@
+nivel,unidade,regiao,data_origem,tentativa,convergiu,avisos_convergencia,sucesso_reportado,mensagens_avisos
+BRASIL,BRASIL,BRASIL,2026-07-19,PADRAO,True,0,True,
+REGIAO,NORTE,NORTE,2026-07-19,PADRAO,True,0,True,
+REGIAO,NORDESTE,NORDESTE,2026-07-19,PADRAO,True,0,True,
+REGIAO,CENTRO_OESTE,CENTRO_OESTE,2026-07-19,PADRAO,True,0,True,
+REGIAO,SUDESTE,SUDESTE,2026-07-19,PADRAO,True,0,True,
+REGIAO,SUL,SUL,2026-07-19,PADRAO,True,0,True,

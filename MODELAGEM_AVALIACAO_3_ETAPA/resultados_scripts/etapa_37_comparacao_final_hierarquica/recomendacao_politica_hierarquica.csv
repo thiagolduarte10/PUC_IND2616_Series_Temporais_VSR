@@ -1,0 +1,5 @@
+horizonte_semanas,metodo_proposto,motivo
+1,MINT_OAS_NAO_NEGATIVO,"Coerente, não negativo e melhor desempenho nas UFs; pequeno custo na previsão nacional."
+4,MINT_OAS_NAO_NEGATIVO,"Coerente, não negativo e melhora as UFs; Brasil e regiões devem ser interpretados com a perda de precisão."
+8,BASE_V2,"Já é coerente, não negativo e sazonalmente estável."
+13,BASE_V2,"Já é coerente, não negativo e sazonalmente estável."
