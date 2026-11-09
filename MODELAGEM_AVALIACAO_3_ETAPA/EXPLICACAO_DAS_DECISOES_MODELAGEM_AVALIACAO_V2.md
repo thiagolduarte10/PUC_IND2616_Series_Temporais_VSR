@@ -204,6 +204,73 @@ A expansão também confirmou um ponto importante da análise exploratória: 13 
 
 **Decisão.** A hierarquia histórica e o calendário hierárquico foram aprovados. Isso demonstra que os dados agregados são coerentes; ainda não demonstra que as previsões serão coerentes. A coerência preditiva será avaliada por métodos de reconciliação.
 
+## Etapa 28 — Previsões-base da hierarquia
+
+Nesta etapa foram produzidas previsões independentes para todos os 33 nós da hierarquia. Para Brasil e regiões, a política inicialmente aprovada foi ETS com tendência amortecida nos horizontes de uma e quatro semanas e ingênuo sazonal em oito e 13 semanas. Para as UFs, utilizou-se inicialmente a referência sazonal como ponto de partida estável.
+
+As 7.656 previsões esperadas foram obtidas sem ausências, duplicidades ou valores negativos. Contudo, as previsões-base não eram obrigadas a somar corretamente: em uma e quatro semanas, a previsão direta do Brasil diferia da soma das previsões das UFs. Isso não é falha dos modelos; é precisamente a incoerência que a reconciliação hierárquica procura resolver.
+
+**Decisão.** As previsões-base foram aprovadas como referência, mas a política das UFs não seria considerada definitiva sem uma comparação explícita entre referências simples nesse nível.
+
+## Etapa 29 — Referências simples nas UFs
+
+As UFs têm séries muito diferentes entre si e 13 delas apresentam mais de 50% de semanas maduras sem casos. Por isso, antes de aplicar métodos hierárquicos, foi necessário verificar se a referência ingênua comum ou a ingênua sazonal era mais apropriada para as folhas da hierarquia.
+
+A comparação usou 12.528 previsões: dois métodos, 27 UFs, 58 origens e quatro horizontes. O resultado foi consistente inclusive quando avaliamos somente semanas cujo alvo tinha casos, evitando uma conclusão artificialmente favorecida por semanas zero.
+
+| Horizonte | Referência recomendada nas UFs | Evidência principal |
+|---|---|---|
+| 1 semana | Ingênua | MASE médio 1,145, menor que 2,296 da sazonal. |
+| 4 semanas | Ingênua | MASE médio 2,285, menor que 2,641 da sazonal. |
+| 8 semanas | Ingênua sazonal | MASE médio 2,990, menor que 3,845 da ingênua. |
+| 13 semanas | Ingênua sazonal | MASE médio 3,122, menor que 5,172 da ingênua. |
+
+Em uma semana, a referência ingênua venceu nas 27 UFs; em quatro semanas, venceu em 22 das 27. Em oito semanas, a sazonal venceu em 25 UFs; em 13 semanas, venceu em todas. Não selecionamos um modelo diferente para cada UF porque usar a mesma validação para escolher 27 regras individuais aumentaria o risco de sobreajuste.
+
+**Decisão.** A política final das previsões-base das UFs passou a ser ingênua nos horizontes de uma e quatro semanas e ingênua sazonal nos horizontes de oito e 13 semanas.
+
+## Etapa 30 — Previsões-base hierárquicas V2
+
+A versão V2 aplicou a política revisada das UFs, mantendo a política já aprovada para Brasil e regiões. Foram novamente geradas 7.656 previsões completas, sem ausências, duplicidades ou valores negativos.
+
+A mudança reduziu substancialmente a incoerência de curto prazo, mas não a eliminou: no Brasil, o MAE da diferença entre a previsão direta e a soma das UFs caiu de 253,4 para 53,1 em uma semana e de 334,0 para 166,0 em quatro semanas. Em oito e 13 semanas, a referência sazonal aplicada em todos os níveis já era coerente por construção.
+
+**Decisão.** A Base V2 é a referência comum para avaliar os métodos de reconciliação. Ela é deliberadamente mantida sem reconciliação para que possamos medir o custo ou ganho de forçar coerência.
+
+## Etapa 31 — Reconciliação bottom-up
+
+No bottom-up, mantemos as previsões das UFs e obtemos regiões e Brasil pela soma das folhas. A coerência foi total: 100% das 232 comparações nacionais e 1.160 comparações regionais respeitaram a hierarquia.
+
+Entretanto, nos horizontes curtos, o método piorou as previsões agregadas. No Brasil, o MASE passou de 0,315 para 0,415 em uma semana e de 1,110 para 1,560 em quatro semanas. Nas regiões, passou de 0,545 para 0,582 em uma semana e de 1,351 para 1,752 em quatro semanas. As previsões das UFs não mudam no bottom-up, pois elas são o ponto de partida do método.
+
+Isso é epidemiologicamente plausível: a previsão direta de Brasil e regiões usa séries mais densas e capta melhor a dinâmica agregada; somar muitas UFs intermitentes acumula ruído.
+
+**Decisão.** Bottom-up permanece como comparador obrigatório e coerente, mas não é candidato a política principal de curto prazo para Brasil e regiões.
+
+## Etapa 32 — Reconciliação top-down
+
+No top-down, preservamos a previsão direta do Brasil e a distribuímos entre regiões e UFs por proporções históricas. Foram avaliadas duas variantes: proporção global, calculada com todo o histórico disponível no corte, e proporção sazonal, calculada para a mesma semana epidemiológica em anos anteriores.
+
+As duas variantes produziram 7.656 previsões cada, sem ausências, duplicidades ou negativos. Ambas ficaram coerentes em 100% das comparações. No Brasil, os resultados são idênticos à Base V2 por construção. Nas regiões, a Base V2 direta foi melhor em todos os horizontes. Nas UFs, o top-down sazonal melhorou o MASE em oito e 13 semanas (2,863 e 3,018, respectivamente, contra 2,990 e 3,122 da Base V2), mas foi pior em uma e quatro semanas.
+
+O resultado revela a troca envolvida: a distribuição sazonal ajuda na alocação de médio prazo entre UFs, porém não substitui de modo geral a informação local e recente das previsões diretas.
+
+**Decisão.** Top-down global e sazonal serão mantidos como comparadores. O top-down sazonal é promissor para as UFs em horizontes longos, mas não é adotado isoladamente como solução final.
+
+## Etapa 33 — Reconciliação estrutural WLS
+
+Nesta etapa aplicamos uma reconciliação por mínimos quadrados ponderados estruturalmente (*structural WLS*). O método projeta o vetor de 33 previsões-base no espaço de previsões coerentes, usando pesos definidos pela estrutura da árvore: Brasil recebe peso 27, regiões recebem o número de UFs que as compõem e cada UF recebe peso 1.
+
+A implementação foi validada antes da comparação: a matriz de agregação teve posto 27, a condição da matriz interna foi 3,0 e o erro máximo de projeção foi 2,1 × 10⁻¹⁵. Em seguida, as 7.656 previsões reconciliadas ficaram 100% coerentes: 232 comparações para Brasil e 1.160 para regiões, todas dentro de precisão numérica.
+
+![Comparação entre Base V2 e WLS estrutural](resultados_scripts/etapa_33_reconciliacao_estrutural/comparacao_base_v2_estrutural.png)
+
+O método não foi, porém, superior de forma consistente. No Brasil, o MASE piorou de 0,315 para 0,327 em uma semana e de 1,110 para 1,216 em quatro semanas. Nas regiões, houve pequena melhora em uma semana (0,545 para 0,520), mas não um ganho consistente em quatro semanas. Nas UFs, o MAE caiu, mas o MASE aumentou de 1,145 para 1,273 em uma semana e de 2,285 para 2,679 em quatro semanas. Isso significa que alguns erros grandes foram reduzidos, mas, proporcionalmente, UFs pequenas foram prejudicadas.
+
+Há uma limitação operacional decisiva: a reconciliação WLS produziu previsões negativas reais em níveis pequenos. Foram 248 previsões negativas de UF em uma semana e 316 em quatro semanas, com mínimo de −7,89 e −25,00 casos, respectivamente. Valores negativos extremamente próximos de zero em horizontes longos são apenas precisão numérica; os negativos de curto prazo não são. Não fizemos truncamento para zero, pois truncar após a reconciliação destruiria a coerência da hierarquia.
+
+**Decisão.** A reconciliação estrutural WLS é um comparador tecnicamente válido e demonstra que coerência, por si só, não garante melhor previsão. Ela não será adotada como política operacional final, devido à piora agregada em curto prazo e às previsões negativas em UFs e regiões.
+
 ## Conclusões provisórias
 
 1. A base madura e o calendário temporal permitem comparação reprodutível sem vazamento de informação futura.
@@ -214,14 +281,17 @@ A expansão também confirmou um ponto importante da análise exploratória: 13 
 6. O SARIMAX harmônico entregou estabilidade completa, mas não superou os melhores métodos nos horizontes avaliados.
 7. A escolha não hierárquica atual é preliminar e depende do horizonte.
 8. A hierarquia geográfica histórica é exata, mas a alta intermitência em várias UFs exige uma reconciliação cuidadosa e avaliação por nível geográfico.
+9. A política das UFs depende do horizonte: ingênua em uma e quatro semanas; ingênua sazonal em oito e 13 semanas.
+10. Bottom-up, top-down e WLS estrutural obtêm coerência, mas nenhum é uniformemente melhor que a Base V2 em todos os níveis e horizontes.
+11. A presença de previsões negativas no WLS estrutural impede seu uso operacional direto para contagem de internações.
 
 ## Próximos passos aprovados
 
-1. Gerar previsões-base para os 33 nós geográficos. Para Brasil e regiões, a política será guiada pelo resultado não hierárquico; para UFs intermitentes, começaremos com referências sazonais estáveis.
-2. Construir erros de calibração anteriores ao período formal de validação, evitando usar alvos futuros para estimar a incerteza da reconciliação.
-3. Comparar previsões-base, bottom-up, top-down, reconciliação estrutural e MinT com shrinkage, caso os diagnósticos de covariância permitam.
-4. Avaliar os resultados separadamente em Brasil, regiões e UFs. Uma média global não deve ocultar o desempenho nos níveis operacionais mais relevantes.
-5. Auditar previsões negativas. Truncar valores após uma reconciliação pode quebrar a coerência da soma; se esse problema for material, a reconciliação deverá incorporar não negatividade ou ser descartada.
+1. Construir uma estimativa de covariância dos erros de previsão sem usar informação futura em cada origem de validação.
+2. Avaliar MinT com shrinkage como reconciliação orientada pelos erros empíricos, e não apenas pela posição de cada nó na árvore.
+3. Comparar Base V2, bottom-up, top-down, WLS estrutural e MinT separadamente em Brasil, regiões e UFs, por horizonte.
+4. Manter a coerência como requisito, mas não aceitar um método que gere previsões negativas materiais ou que piore de forma relevante os níveis agregados.
+5. Registrar a decisão final como uma política por horizonte e por nível geográfico, caso os resultados não sustentem um vencedor único.
 
 ## Referências metodológicas
 
@@ -241,3 +311,9 @@ A expansão também confirmou um ponto importante da análise exploratória: 13 
 - Etapa 25B: `resultados_scripts/etapa_25b_sarimax_harmonico/`.
 - Etapa 26: `resultados_scripts/etapa_26_comparacao_modelos_nao_hierarquicos/`.
 - Etapa 27: `resultados_scripts/etapa_27_estrutura_hierarquica/`.
+- Etapa 28: `resultados_scripts/etapa_28_previsoes_base_hierarquicas/`.
+- Etapa 29: `resultados_scripts/etapa_29_referencias_ufs/`.
+- Etapa 30: `resultados_scripts/etapa_30_previsoes_base_hierarquicas_v2/`.
+- Etapa 31: `resultados_scripts/etapa_31_reconciliacao_bottom_up/`.
+- Etapa 32: `resultados_scripts/etapa_32_reconciliacao_top_down/`.
+- Etapa 33: `resultados_scripts/etapa_33_reconciliacao_estrutural/`.

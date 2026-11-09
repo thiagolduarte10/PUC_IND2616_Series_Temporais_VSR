@@ -1,0 +1,5 @@
+nivel_agregado,metodo_reconciliacao,comparacoes,diferenca_absoluta_maxima,comparacoes_coerentes,percentual_coerente
+BRASIL,TOP_DOWN_GLOBAL,232,4.547473508864641e-13,232,100.0
+BRASIL,TOP_DOWN_SAZONAL,232,4.547473508864641e-13,232,100.0
+REGIAO,TOP_DOWN_GLOBAL,1160,0.0,1160,100.0
+REGIAO,TOP_DOWN_SAZONAL,1160,0.0,1160,100.0
