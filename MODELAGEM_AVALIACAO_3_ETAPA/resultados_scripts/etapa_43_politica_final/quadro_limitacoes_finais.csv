@@ -1,0 +1,6 @@
+tema,descricao
+Seleção da política,"Modelos, vencedores por nível e horizonte e política foram escolhidos nos mesmos 58 cortes formais usados na avaliação; os ganhos são levemente otimistas."
+LightGBM,Hiperparâmetros fixos (não ajustados); escala de normalização do modelo global = média do treino.
+Calibração MinT,A covariância dos erros foi calibrada em período que atravessa a pandemia de COVID-19.
+Agregados,Brasil tem 58 avaliações por horizonte e regiões 290; diferenças pequenas de MASE estão no ruído.
+Faixas de incerteza,As faixas são empíricas e marginais; seus limites não são necessariamente coerentes entre os níveis geográficos.

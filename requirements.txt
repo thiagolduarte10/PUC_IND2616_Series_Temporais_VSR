@@ -1,0 +1,18 @@
+# Python 3.12 — ambiente único para todos os notebooks e scripts do repositório.
+#   conda create -n vsr-intermit python=3.12 -y && conda activate vsr-intermit
+#   pip install -r requirements.txt
+#   python -m ipykernel install --user --name vsr-intermit
+ipykernel==7.4.0
+lightgbm==4.7.0
+matplotlib==3.11.2
+nbconvert==7.17.2
+nbformat==5.11.1
+numpy==2.5.4
+pandas==2.3.3
+pyarrow==26.0.1
+requests==2.34.2
+scipy==1.18.1
+seaborn==0.13.2
+statsforecast==2.1.1
+statsmodels==0.15.0
+tqdm==4.70.1

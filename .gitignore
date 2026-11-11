@@ -1,0 +1,19 @@
+# Dados brutos e execução local (gerados pelos notebooks; distribuídos em execucao_local_vsr.zip)
+execucao_local_vsr/
+execucao_local_vsr.zip
+
+# Python / Jupyter
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+
+# Artefatos de compilação LaTeX (manter só .tex e .pdf)
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk

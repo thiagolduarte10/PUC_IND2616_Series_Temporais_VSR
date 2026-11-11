@@ -1,0 +1,5 @@
+horizonte_semanas,base,BRASIL,REGIAO,UF,estrategia_adotada,justificativa
+1,V3,BASE_V2,BASE_V2,LGBM_TWEEDIE_UF,MINT_OAS_NAO_NEGATIVO_V3,Base V3 + MinT: melhor MASE nos três níveis entre todas as alternativas; ETS mantido nos agregados.
+4,V3,BASE_V2,BASE_V2,LGBM_TWEEDIE_UF,MINT_OAS_NAO_NEGATIVO_V3,"Base V3 + MinT: maior ganho do estudo (Brasil 1,20 → 0,80); diversidade ETS/LightGBM favorece a reconciliação."
+8,V4,BASE_V2,LGBM_GLOBAL,LGBM_GLOBAL,MINT_OAS_NAO_NEGATIVO_V4,Base V4 + MinT: supera a política V2 nos três níveis e mantém coerência (a Base V4 sem MinT não é coerente).
+13,V4,BASE_V2,BASE_V2,LGBM_GLOBAL,MINT_OAS_NAO_NEGATIVO_V4,Base V4 + MinT: melhor MASE agregado entre as alternativas coerentes.
