@@ -319,4 +319,4 @@ As faixas de 80% tiveram cobertura retrospectiva entre 76,9% e 78,4%; as de 95%,
 
 ## Relação com os resultados do projeto
 
-Os scripts, tabelas e gráficos que sustentam este guia estão documentados em `MODELAGEM_AVALIACAO_3_ETAPA/EXPLICACAO_DAS_DECISOES_MODELAGEM_AVALIACAO_V2.md` e nos resultados locais em `/home/thiago/Series-Temporais-Trabalho/execucao_local_vsr/saidas/`.
+Os scripts, tabelas e gráficos que sustentam este guia estão documentados em `MODELAGEM_AVALIACAO_3_ETAPA/EXPLICACAO_DAS_DECISOES_MODELAGEM_AVALIACAO_V2.md` e nos resultados versionados em `*/resultados_scripts/`.

@@ -5,5 +5,5 @@ ETS_SAZONAL_ADITIVO_HEURISTICO,INCLUIDO,Modelo ETS estável com baixa taxa de co
 ETS_TENDENCIA_AMORTECIDA_HEURISTICO,INCLUIDO,Melhor ETS no curto prazo.
 SARIMAX_FOURIER2_ARMA11_LOG1P,INCLUIDO,"Modelo harmônico estável, com cobertura completa."
 ETS_TENDENCIA_ADITIVA_HEURISTICO,EXCLUIDO,Frequência elevada de previsões corrigidas para zero e desempenho inferior ao ETS amortecido.
-SARIMA_SAZONAL_MA,EXCLUIDO,Cobertura insuficiente de convergência: 80.2%.
-SARIMA_MUDANCA_NIVEL,EXCLUIDO,Cobertura insuficiente de convergência: 81.0%.
+SARIMA_SAZONAL_MA,EXCLUIDO,Cobertura insuficiente de convergência: 81.0%.
+SARIMA_MUDANCA_NIVEL,EXCLUIDO,Cobertura insuficiente de convergência: 80.2%.

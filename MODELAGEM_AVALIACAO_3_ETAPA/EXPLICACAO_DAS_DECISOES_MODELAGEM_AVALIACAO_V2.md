@@ -416,7 +416,7 @@ Os quadros de alertas preservam a ressalva encontrada na Etapa 38A: houve alerta
 
 ## Arquivos de evidência
 
-- Notebook da etapa: `notebook_parcial_modelagem_avaliacao/Modelagem_Avaliacao_3_Etapa_v2.ipynb`.
+- Notebook da etapa: `03_Modelagem_Avaliacao.ipynb` (etapas 20–40); etapas 41–43 em `04_Modelos_Intermitentes_UFs.ipynb`, `05_LGBM_Global_vs_ETS.ipynb` e `06_Politica_Final.ipynb`.
 - Etapa 20: `resultados_scripts/etapa_20_preparacao_modelagem/`.
 - Etapas 21 e 22: `resultados_scripts/etapa_21_referencias_simples/` e `resultados_scripts/etapa_22_metricas_referencias/`.
 - Etapa 23B: `resultados_scripts/etapa_23b_ets_inicializacao_heuristica/`.

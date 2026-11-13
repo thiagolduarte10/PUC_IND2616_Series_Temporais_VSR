@@ -1,4 +1,4 @@
 modelo,erro_ou_aviso,falhas
-SARIMA_MUDANCA_NIVEL,Maximum Likelihood optimization failed to converge. Check mle_retvals,66
-SARIMA_SAZONAL_MA,Maximum Likelihood optimization failed to converge. Check mle_retvals,68
+SARIMA_MUDANCA_NIVEL,Maximum Likelihood optimization failed to converge. Check mle_retvals,69
+SARIMA_SAZONAL_MA,Maximum Likelihood optimization failed to converge. Check mle_retvals,65
 SARIMA_SAZONAL_MA,Maximum Likelihood optimization failed to converge. Check mle_retvals | Too few observations to estimate starting parameters for seasonal ARMA. All parameters except for variances will be set to zeros.,1

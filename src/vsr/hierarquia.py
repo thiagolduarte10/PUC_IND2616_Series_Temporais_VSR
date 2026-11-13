@@ -1,19 +1,19 @@
-"""Funções compartilhadas pelas etapas 41–43 (política hierárquica final).
+"""Previsão hierárquica das etapas 41–43 (política final): hierarquia, métricas, MinT e LightGBM.
 
 Concentra o que antes era copiado entre notebooks: hierarquia (S, ordem dos nós), painel semanal,
 métricas com a escala MASE da etapa 37, MinT-OAS não negativo (transcrição das etapas 35/36) e os dois
 LightGBM diretos (só UFs e global com os 33 nós).
 """
 from functools import cache
-from pathlib import Path
 
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
 from scipy.optimize import lsq_linear
 
-RAIZ = Path(__file__).resolve().parents[2]
-RES = RAIZ / "MODELAGEM_AVALIACAO_3_ETAPA" / "resultados_scripts"
+from vsr.config import RESULTADOS
+
+RES = RESULTADOS["modelagem"]
 DIR_27 = RES / "etapa_27_estrutura_hierarquica"
 
 HORIZONTES = [1, 4, 8, 13]

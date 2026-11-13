@@ -1,9 +1,9 @@
 nivel_agregado,horizonte_semanas,comparacoes,diferenca_absoluta_maxima,coerente
-BRASIL,1,1,1.1368683772161603e-13,True
-BRASIL,4,1,0.0,True
+BRASIL,1,1,0.0,True
+BRASIL,4,1,1.1368683772161603e-13,True
 BRASIL,8,1,0.0,True
 BRASIL,13,1,0.0,True
 REGIAO,1,5,1.4210854715202004e-14,True
-REGIAO,4,5,1.7763568394002505e-15,True
+REGIAO,4,5,7.105427357601002e-15,True
 REGIAO,8,5,0.0,True
 REGIAO,13,5,0.0,True

@@ -1,0 +1,9 @@
+# conda env create -f environment.yml && conda activate vsr-st
+name: vsr-st
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
+  - pip
+  - pip:
+      - -r requirements.txt

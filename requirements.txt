@@ -1,18 +1,37 @@
-# Python 3.12 — ambiente único para todos os notebooks e scripts do repositório.
-#   conda create -n vsr-intermit python=3.12 -y && conda activate vsr-intermit
-#   pip install -r requirements.txt
-#   python -m ipykernel install --user --name vsr-intermit
-ipykernel==7.4.0
+# Ambiente único do projeto (notebooks 01–06, scripts e figuras). Python 3.13.
+# As versões de pandas, pyarrow e statsmodels são as da execução original dos notebooks 01–03; os ajustes ETS/SARIMA
+# dependem do otimizador numérico, então outras versões produzem diferenças pequenas (ver docs/REPRODUTIBILIDADE.md).
+#
+#   conda env create -f environment.yml        (ou: python 3.13 + pip install -r requirements.txt)
+#   conda activate vsr-st
+#   python -m ipykernel install --user --name vsr-st --display-name "Python 3.13 (vsr-st)"
+
+# núcleo numérico e dados
+numpy==2.4.6
+pandas==3.1.1
+pyarrow==26.0.1
+scipy==1.15.3
+
+# modelos
+statsmodels==0.15.0
+statsforecast==2.0.3
 lightgbm==4.7.0
+scikit-learn==1.9.1  # exigido por lightgbm.sklearn (LGBMRegressor)
+
+# gráficos
 matplotlib==3.11.2
+seaborn==0.13.2
+
+# download dos microdados
+requests==2.34.2
+tqdm==4.70.1
+
+# execução dos notebooks
+ipykernel==7.4.0
+jupyterlab==4.6.6
+nbclient==0.11.0
 nbconvert==7.17.2
 nbformat==5.11.1
-numpy==2.5.4
-pandas==2.3.3
-pyarrow==26.0.1
-requests==2.34.2
-scipy==1.18.1
-seaborn==0.13.2
-statsforecast==2.1.1
-statsmodels==0.15.0
-tqdm==4.70.1
+
+# código compartilhado do repositório (src/vsr), instalado em modo editável
+-e .

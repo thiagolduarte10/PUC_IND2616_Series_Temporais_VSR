@@ -181,11 +181,11 @@ ETS amortecido foi útil em curto prazo para séries densas; a referência ingê
 
 ## 12. Reprodutibilidade e evidências
 
-- Notebook completo: `Estudo_Geral_Trabalho_Series_Temporais.ipynb`.
+- Notebooks, na ordem de execução: `TRATAMENTO_DADOS_1_ETAPA/01_Tratamento_Dados.ipynb`, `ANALISE_EXPLORATORIA_2_ETAPA/02_Analise_Exploratoria.ipynb` e `MODELAGEM_AVALIACAO_3_ETAPA/03_…06_*.ipynb` (ver `README.md`).
 - Tratamento: `TRATAMENTO_DADOS_1_ETAPA/EXPLICACAO_DAS_DECISOES_TRATAMENTO_DADOS_V2.md`.
 - Exploração: `ANALISE_EXPLORATORIA_2_ETAPA/EXPLICACAO_DAS_DECISOES_ANALISE_EXPLORATORIA_V2.md`.
 - Modelagem: `MODELAGEM_AVALIACAO_3_ETAPA/EXPLICACAO_DAS_DECISOES_MODELAGEM_AVALIACAO_V2.md`.
-- Resultados locais consolidados: `/home/thiago/Series-Temporais-Trabalho/execucao_local_vsr/saidas/etapa_40_consolidacao_final/`.
+- Resultados locais consolidados: `MODELAGEM_AVALIACAO_3_ETAPA/resultados_scripts/etapa_40_consolidacao_final/`.
 
 ## Referências metodológicas
 
