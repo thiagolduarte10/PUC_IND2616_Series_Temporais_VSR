@@ -94,7 +94,13 @@ o que é idêntico e o que varia com o otimizador numérico) estão em [`docs/RE
 
 ## Documentação
 
-* `docs/RELATORIO_FINAL.md` — relatório do estudo (política V2; as etapas 41–43 estão descritas nos notebooks 04–06).
+* `docs/RELATORIO_FINAL.md` — relatório atualizado até a política vigente da etapa 43.
 * `docs/NARRATIVA_DAS_DECISOES.md`, `docs/CONCLUSAO_EPIDEMIOLOGICA.md`, `docs/ENTENDIMENTO_TIPOS_MODELOS_IMPORTANTES_PARA_ESTUDO.md`,
   `docs/EXPLICACAO_INICIAL_ST.md` — narrativa, leitura epidemiológica e guias de apoio.
 * `*/EXPLICACAO_DAS_DECISOES_*.md` — decisões de cada fase, com as figuras correspondentes.
+
+## Por onde estudar
+
+Comece por [ORDEM_DE_LEITURA.md](docs/ORDEM_DE_LEITURA.md). O [GUIA_PESSOAL_THIAGO.md](docs/GUIA_PESSOAL_THIAGO.md) explica as bases V1–V4 e prepara a apresentação. As etapas 37–40 são históricas; os resultados finais atuais estão na etapa 43.
+
+A pasta padrão de dados é `execucao_local_vsr/` dentro da raiz, ignorada pelo Git. Para usar a pasta irmã antiga no WSL, configure `VSR_DIR_EXECUCAO` conforme [REPRODUTIBILIDADE.md](docs/REPRODUTIBILIDADE.md). Retomar um notebook depende de suas entradas já existirem; a simples presença dos CSVs não garante uma execução integral limpa.

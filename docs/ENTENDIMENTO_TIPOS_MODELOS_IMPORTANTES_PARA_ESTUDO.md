@@ -1,12 +1,14 @@
 # Modelos importantes para o estudo — guia atualizado após a execução
 
+Atualização em 14/11/2026: as fichas 1–5 descrevem a rodada clássica até a etapa 40. As fichas 6–8 e a política vigente ao final incorporam as etapas 41–43. Quando uma ficha antiga diz “final”, refere-se à primeira rodada.
+
 ## Propósito deste documento
 
 Este arquivo começou como um mapa de candidatos antes de conhecermos os dados. Agora ele registra o que cada família de modelos significa, como foi usada no trabalho e qual foi sua contribuição real para prever semanalmente internações por SRAG associada ao VSR em crianças menores de dois anos.
 
 O estudo trabalhou com 395 semanas maduras, de 30/12/2018 a 19/07/2026, e com uma hierarquia geográfica de 27 UFs, cinco regiões e Brasil. As previsões foram avaliadas em 58 origens temporais e nos horizontes de 1, 4, 8 e 13 semanas. Portanto, as conclusões abaixo decorrem de previsão fora da amostra, e não de ajuste visual ao passado.
 
-## Resultado em uma página
+## Resultado da primeira rodada (etapas 1–40)
 
 | Método ou estratégia | Foi testado? | Papel final no trabalho |
 |---|---|---|
@@ -256,7 +258,7 @@ MinT não negativo foi escolhido para 1 e 4 semanas **quando a saída precisa co
 
 ---
 
-## Política final por horizonte
+## Política anterior por horizonte (etapa 37)
 
 | Horizonte | Método operacional | Objetivo priorizado |
 |---|---|---|
@@ -273,12 +275,55 @@ As previsões pontuais foram complementadas por faixas empíricas de 80% e 95%, 
 
 As faixas de 80% tiveram cobertura retrospectiva entre 76,9% e 78,4%; as de 95%, entre 89,7% e 93,1%. Portanto, devem ser chamadas de faixas empíricas de incerteza, não de garantias probabilísticas formais. Seus limites são marginais e não necessariamente se somam na hierarquia, embora os pontos previstos sejam coerentes.
 
-## O que não foi feito e por quê
+## 6. Métodos especializados em intermitência — etapa 41
 
-- **Deep learning:** não foi necessário para responder ao problema atual. Há apenas 395 semanas maduras por série densa e várias UFs são intermitentes. Sem validação externa adicional, uma rede neural aumentaria o risco de sobreajuste e dificultaria a interpretação sem garantia de ganho.
-- **Covariáveis externas:** clima, dados demográficos ou outros indicadores poderiam ser estudados, mas só entram se estiverem disponíveis no momento correto, sem atraso, e se melhorarem a validação temporal. Não foram adicionados apenas por plausibilidade narrativa.
-- **Correção manual da previsão operacional:** não foi feita. A previsão de julho de 2026 recebeu alerta de discordância excepcional entre níveis, mas não foi alterada depois de observada, pois isso seria seleção pós-hoc.
-- **Um modelo único para todas as UFs:** foi evitado porque os dados demonstraram intermitência e volume muito diferentes entre as unidades.
+**Ideia.** Representar séries em que os valores positivos são separados por zeros. Muitos zeros justificam testar esses métodos, mas não garantem que sejam vencedores; o VSR também tem sazonalidade.
+
+**Candidatos.** CrostonClassic separa tamanho positivo e intervalo entre ocorrências. CrostonSBA aplica uma correção de viés; CrostonOptimized estima a suavização. TSB atualiza probabilidade de ocorrência e tamanho positivo. ADIDA agrega períodos antes de prever e desagregar; IMAPA combina diferentes escalas de agregação. TSB_SAZONAL foi a adaptação com dessazonalização pelo perfil anual.
+
+**Exemplo ilustrativo.** Na sequência 0, 0, 3, 0, 0, 2, um método pode estimar quantidade positiva típica e frequência de ocorrência. Não identifica obrigatoriamente a semana exata do próximo caso.
+
+**Resultado.** Esses candidatos foram efetivamente testados no notebook 04. Não compõem as bases finais selecionadas; LightGBM apresentou menor MASE médio das UFs por horizonte. Não se deve generalizar que Croston ou TSB nunca funcionam.
+
+## 7. GLM binomial negativo com Fourier — etapa 41
+
+**Ideia.** Regressão para contagens com variabilidade que pode superar a média. Os termos de Fourier representam o calendário anual e o nível recente traz informação da evolução da série.
+
+**Exemplo ilustrativo.** Duas semanas com nível recente semelhante podem receber previsões diferentes conforme a posição no ciclo sazonal.
+
+**Uso no estudo.** Foi testado como GLM_NB_FOURIER, com previsão direta por horizonte. É uma alternativa de contagem, distinta dos métodos Croston e das árvores de boosting.
+
+**Resultado e limite.** Não foi selecionado para a política final. O uso de uma distribuição de contagens não garante menor erro nem estabelece uma explicação causal dos casos.
+
+## 8. LightGBM compartilhado — etapas 41 e 42
+
+**Ideia.** Árvores de decisão combinadas por boosting aprendem relações entre atributos históricos e o alvo futuro. “Global” significa aprender com várias séries conjuntamente.
+
+**Duas versões.** LGBM_TWEEDIE (também chamado LGBM_TWEEDIE_UF na composição) usa as 27 UFs. LGBM_GLOBAL usa os 33 nós e normaliza os valores pela média de treino de cada nó, com piso. Ambas usam perda Tweedie; não são redes neurais.
+
+**Atributos.** Último valor conhecido e três defasagens anteriores, referência de 52 semanas relativa ao alvo, médias retrospectivas de 4/8 semanas, fração de zeros em 8 semanas e calendário do alvo. Entram também identidade da UF ou nó e, no global, nível geográfico. Não foram usados clima, mobilidade ou dados externos adicionais.
+
+**Treinamento.** Um modelo por horizonte é reajustado a cada origem. Entram no treino somente exemplos cujo alvo já ocorreu até a origem. Os 33 nós compartilham informação, mas não equivalem a 33 séries independentes: os agregados contêm as próprias UFs.
+
+**Resultado.** A versão UF venceu por MASE médio estadual na etapa 41, quase empatando com o sazonal em h=13. A versão global ganhou em algumas combinações de nível/horizonte na etapa 42. Os resultados após reconciliação determinaram o compromisso final.
+
+**Limite.** Os hiperparâmetros são fixos; as escolhas reutilizam a validação. Não há garantia de ganho em dados futuros.
+
+## Política vigente — etapa 43
+
+| Horizonte | Base escolhida | Brasil | Regiões | UFs | Reconciliação |
+|---|---|---|---|---|---|
+| 1 e 4 semanas | V3 | ETS amortecido | ETS amortecido | LightGBM treinado conjuntamente nas 27 UFs | MinT-OAS não negativo |
+| 8 semanas | V4 | Ingênuo sazonal | LightGBM global de 33 nós | LightGBM global de 33 nós | MinT-OAS não negativo |
+| 13 semanas | V4 | Ingênuo sazonal | Ingênuo sazonal | LightGBM global de 33 nós | MinT-OAS não negativo |
+
+Base é a tabela de previsões independentes; política é a regra de composição e reconciliação. V1–V4 são versões dessa tabela, não versões dos microdados.
+
+A V4 independente escolheu LightGBM global para Brasil em h=4 e regiões em h=1/4, mas a política final utiliza V3 nesses horizontes. Escolher bons modelos isolados não garante o melhor conjunto após MinT.
+
+A seleção dos modelos e da política reutiliza as mesmas 58 origens usadas para calcular as métricas. Os ganhos podem estar otimistas; a magnitude desse viés não foi estimada. Não há teste final intocado nem demonstração de significância estatística. A calibração do MinT atravessa 2020–2021. A validação usa uma versão consolidada dos registros: separar datas de treino e alvo evita o uso direto de alvos futuros no ajuste, mas não reconstitui exatamente o que estava publicado em cada origem histórica. A maturidade de 13 semanas reduz o problema das semanas recentes; não substitui snapshots históricos ou uma avaliação em tempo real.
+
+Deep learning e covariáveis externas não foram utilizados. A ausência de covariáveis externas não impediu os ganhos do LightGBM com atributos derivados do próprio histórico.
 
 ## Glossário atualizado
 

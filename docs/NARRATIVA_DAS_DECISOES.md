@@ -3,11 +3,13 @@
 **Projeto:** Previsão hierárquica de internações por SRAG associada ao VSR em menores de dois anos  
 **Disciplina:** IND2616 — Séries Temporais, PUC-Rio
 
+Versão atualizada em 14/11/2026. As seções 1–13 abaixo preservam a trajetória até a primeira consolidação (etapa 40). As seções 14–16 registram a extensão e a decisão vigente.
+
 ## A história que o trabalho conta
 
 Este projeto não começou pela escolha de um algoritmo. Começou com uma pergunta operacional: como antecipar, semana a semana, a demanda hospitalar associada ao VSR em crianças pequenas sem esconder as diferenças entre UFs, regiões e Brasil?
 
-A resposta não poderia ser apenas “usar o modelo mais complexo”. Para que uma previsão tenha utilidade, ela precisa partir de uma base definida, respeitar o tempo em que a informação se torna disponível, ser comparada honestamente com alternativas simples e, neste caso, somar corretamente ao longo da geografia brasileira. As 40 etapas do estudo foram organizadas para tornar essa história verificável.
+A resposta não poderia ser apenas “usar o modelo mais complexo”. Para que uma previsão tenha utilidade, ela precisa partir de uma base definida, respeitar o tempo em que a informação se torna disponível, ser comparada honestamente com alternativas simples e, neste caso, somar corretamente ao longo da geografia brasileira. As primeiras 40 etapas do estudo foram organizadas para tornar essa história verificável.
 
 ## 1. Antes de prever, foi necessário definir o que seria previsto
 
@@ -78,7 +80,7 @@ Bottom-up usa as UFs para formar região e Brasil. Top-down parte do agregado e 
 
 Uma previsão negativa de internações não é comunicável. Cortá-la para zero depois da reconciliação pareceria simples, mas faria com que a soma das UFs deixasse de ser igual à região e ao Brasil. Esse problema exigiu uma solução que respeitasse simultaneamente as duas condições.
 
-## 10. A escolha metodológica final foi MinT não negativo em curto prazo
+## 10. A primeira escolha metodológica foi MinT não negativo em curto prazo
 
 O MinT estima a reconciliação considerando a estrutura de erros das previsões. Como as UFs têm séries intermitentes, a matriz de covariância empírica era deficiente de posto; portanto, a versão com shrinkage OAS foi necessária para estabilizar a inversão. Ainda assim, a versão sem restrição continuou gerando negativos.
 
@@ -106,7 +108,7 @@ As previsões pontuais foram acompanhadas de faixas empíricas de 80% e 95%, obt
 
 Esses números são próximos, mas inferiores, aos níveis nominais. Portanto, as faixas não foram apresentadas como garantia probabilística. Elas são uma referência operacional para perceber que a incerteza cresce fortemente com o horizonte. Em 8 e 13 semanas, devem orientar cenários de planejamento, e não prometer uma contagem futura precisa.
 
-## 13. Onde o trabalho termina e o que ele deixa pronto
+## 13. Primeira consolidação — estado ao final da etapa 40
 
 A Etapa 40 consolidou métricas, política por horizonte, previsão operacional, incerteza, alertas e limitações. Ela não recalculou nem selecionou um modelo novo. Essa decisão de encerrar a busca evita a tentação de continuar tentando métodos até encontrar um resultado visualmente conveniente.
 
@@ -123,3 +125,31 @@ O trabalho termina com uma cadeia completa e auditável:
 9. consolidação pronta para relatório e apresentação.
 
 O próximo teste científico natural não é ajustar mais um modelo aos mesmos cortes. É aplicar a política previamente fixada quando houver semanas futuras maduras e avaliá-la em uma janela independente.
+
+## 14. A investigação continuou: intermitência e aprendizado compartilhado
+
+A etapa 40 encerrou uma primeira rodada. O grupo então executou as perguntas que antes eram sugestões: métodos próprios para séries esparsas e aprendizado de máquina. Isso ampliou o conjunto de candidatos e exigiu nova consolidação.
+
+Croston clássico, SBA, Croston otimizado, TSB, ADIDA, IMAPA e uma adaptação sazonal de TSB foram comparados a GLM binomial negativo com Fourier e LightGBM Tweedie. O LightGBM das 27 UFs ganhou por MASE médio estadual nos quatro horizontes, com vantagem praticamente nula em 13 semanas. A Base V3 substitui a camada UF da V2, preservando os agregados.
+
+Na etapa 42, LightGBM também aprendeu conjuntamente com Brasil, regiões e UFs. A normalização por nó diminui a diferença de escala, sem garantir peso estatístico idêntico. A Base V4 reúne vencedores por nível e horizonte antes da reconciliação.
+
+## 15. Por que V4 não substituiu integralmente V3
+
+O desempenho do conjunto reconciliado não é determinado apenas pelo ranking individual dos modelos-base. A etapa 43 combina V3 em 1/4 semanas e V4 em 8/13, todas reconciliadas.
+
+| Horizonte | Base escolhida | Brasil | Regiões | UFs | Reconciliação |
+|---|---|---|---|---|---|
+| 1 e 4 semanas | V3 | ETS amortecido | ETS amortecido | LightGBM treinado conjuntamente nas 27 UFs | MinT-OAS não negativo |
+| 8 semanas | V4 | Ingênuo sazonal | LightGBM global de 33 nós | LightGBM global de 33 nós | MinT-OAS não negativo |
+| 13 semanas | V4 | Ingênuo sazonal | Ingênuo sazonal | LightGBM global de 33 nós | MinT-OAS não negativo |
+
+Essa escolha é um compromisso. Em uma semana, V4 reconciliada é melhor para Brasil, enquanto V3 favorece regiões e UFs. Em quatro, V3 favorece agregados, enquanto V4 favorece UFs. A justificativa “V3 vence todos os níveis” estava incorreta. A diversidade ETS/LightGBM pode ajudar, mas não foi demonstrada como causa isolada do ganho.
+
+## 16. O que passa a ser a conclusão vigente
+
+A etapa 43 melhora o MASE em 11 das 12 combinações frente à política da etapa 37. O diagnóstico atual não produziu alertas de ajuste acima do P95; os alertas anteriores continuam válidos como histórico da primeira política. As faixas foram recalculadas para a nova política.
+
+A seleção dos modelos e da política reutiliza as mesmas 58 origens usadas para calcular as métricas. Os ganhos podem estar otimistas; a magnitude desse viés não foi estimada. Não há teste final intocado nem demonstração de significância estatística. A calibração do MinT atravessa 2020–2021. A validação usa uma versão consolidada dos registros: separar datas de treino e alvo evita o uso direto de alvos futuros no ajuste, mas não reconstitui exatamente o que estava publicado em cada origem histórica. A maturidade de 13 semanas reduz o problema das semanas recentes; não substitui snapshots históricos ou uma avaliação em tempo real.
+
+O próximo passo científico é verificar a regra fixada em dados independentes. Para apresentação, use os números da etapa 43 e conte a etapa 40 como uma primeira conclusão que foi ampliada pelo grupo.

@@ -1,327 +1,170 @@
-% Study article in SBPO-like layout (A4, Times 12pt, unnumbered title block, Resumo + Abstract).
-% Figures are referenced from the stage folders of this repository; compile from the repo root.
+% Relatório em formato inspirado no SBPO; não certificado para submissão.
+% Compilar dentro de ARTIGO_SBPO. Resultados vigentes: etapa 43.
 \documentclass[12pt,a4paper]{article}
-
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
 \usepackage{mathptmx}
 \usepackage[top=3cm,bottom=2cm,left=3cm,right=2cm]{geometry}
-\usepackage{graphicx}
-\usepackage{booktabs}
-\usepackage{amsmath,amssymb}
-\usepackage{caption}
-\usepackage{float}
-\usepackage{titlesec}
+\usepackage{graphicx,booktabs,amsmath,amssymb,caption,float,titlesec}
 \usepackage[hidelinks]{hyperref}
-
 \captionsetup{font=small,labelfont=bf}
 \titleformat{\section}{\normalsize\bfseries\MakeUppercase}{\thesection.}{0.5em}{}
 \titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.5em}{}
 \setlength{\parskip}{4pt}
-
-\graphicspath{
-  {../ANALISE_EXPLORATORIA_2_ETAPA/resultados_scripts/}
-  {../MODELAGEM_AVALIACAO_3_ETAPA/resultados_scripts/}
-}
-
+\graphicspath{{../APRESENTACAO_RESULTADOS/figuras/}{../ANALISE_EXPLORATORIA_2_ETAPA/resultados_scripts/}{../MODELAGEM_AVALIACAO_3_ETAPA/resultados_scripts/}}
 \begin{document}
-
 \begin{center}
-{\large\bfseries COHERENT AND NON-NEGATIVE HIERARCHICAL FORECASTING OF RSV-ASSOCIATED HOSPITALIZATIONS IN CHILDREN UNDER TWO IN BRAZIL}
+{\large\bfseries COHERENT AND NON-NEGATIVE FORECASTS OF RSV-ASSOCIATED HOSPITALIZED CASES IN CHILDREN UNDER TWO IN BRAZIL}
+\vspace{0.5cm}
 
-\vspace{0.8cm}
 Thiago Paes, Joan Souza, Matheus Accioly, Isabelle Gagno\\
 Pontifícia Universidade Católica do Rio de Janeiro (PUC-Rio)\\
-IND2616 -- Time Series
+IND2616 -- Time Series; Professor Fernando Cyrino\\
+\small Results through stage 43. Document revision: 14 November 2026.
 \end{center}
-
-\vspace{0.5cm}
 \noindent\textbf{RESUMO}
 
-\noindent Este trabalho prevê o número semanal de internações por SRAG associada ao vírus sincicial respiratório (VSR) em crianças menores de dois anos, nos níveis UF, região e Brasil. A partir de 4,68 milhões de notificações do SIVEP-Gripe (2019--2026), obteve-se um painel de 33 séries e 395 semanas maduras. Modelos de referência, ETS e SARIMA(X) foram comparados em validação temporal expansiva com 58 origens e horizontes de 1 a 13 semanas, e seis estratégias de reconciliação hierárquica foram avaliadas. A política final usa MinT com restrição de não negatividade em 1 e 4 semanas e o ingênuo sazonal em 8 e 13 semanas, garantindo previsões coerentes e sem contagens negativas.
+\noindent O estudo prevê contagens semanais de casos hospitalizados de SRAG com confirmação de VSR em menores de dois anos, por UF de residência, região e Brasil, indexados pelo início de sintomas. O tratamento de 4,68 milhões de notificações gerou 158.358 registros elegíveis e 33 séries geográficas, com 395 semanas maduras. Referências simples, ETS e SARIMA(X) foram seguidos por métodos para intermitência e LightGBM compartilhado entre séries. A avaliação retrospectiva usa 58 origens e horizontes de 1, 4, 8 e 13 semanas. A política atual combina as previsões-base V3 em 1/4 semanas e V4 em 8/13, aplicando MinT-OAS não negativo em todos os horizontes. Frente à política anterior, o MASE melhora em 11 de 12 combinações de nível e horizonte; regiões em 13 semanas pioram ligeiramente. Os ganhos são condicionados à reutilização das origens para seleção, à versão consolidada dos dados e à ausência de teste final independente. Não se estima ocupação hospitalar nem efeito causal em saúde.
 
-\noindent\textbf{PALAVRAS CHAVE.} Previsão hierárquica. Reconciliação MinT. Vigilância epidemiológica.
+\noindent\textbf{PALAVRAS CHAVE.} Previsão hierárquica. VSR. LightGBM. Reconciliação.
+\vspace{0.2cm}
 
-\noindent\textbf{Tópicos:} EST -- Estatística; SA -- PO na Área de Saúde.
-
-\vspace{0.3cm}
 \noindent\textbf{ABSTRACT}
 
-\noindent This work forecasts the weekly number of severe acute respiratory illness (SARI) hospitalizations associated with respiratory syncytial virus (RSV) in children under two years old, at state (UF), regional and national levels. From 4.68 million SIVEP-Gripe notifications (2019--2026), a panel of 33 series and 395 mature weeks was built. Benchmark, ETS and SARIMA(X) models were compared in an expanding-window temporal validation with 58 origins and horizons of 1 to 13 weeks, and six hierarchical reconciliation strategies were evaluated. The final policy applies non-negative MinT at 1 and 4 weeks and the seasonal naive at 8 and 13 weeks, yielding coherent forecasts with no negative counts.
+\noindent This study forecasts weekly counts of RSV-confirmed hospitalized SARI cases in children under two, indexed by symptom-onset week and residence, across 27 states, five regions and Brazil. Processing 4.68 million notifications yielded 158,358 eligible records and 395 mature weeks. Benchmarks, ETS and SARIMA(X) were extended with intermittent-demand methods and pooled LightGBM. Retrospective evaluation uses 58 origins and four horizons. The final policy combines base forecasts V3 at one/four weeks and V4 at eight/thirteen weeks, with non-negative MinT-OAS at every horizon. Compared with the previous policy, MASE improves in 11 of 12 level--horizon combinations. Selection on the evaluation origins, consolidated data and the absence of an independent test limit interpretation. The forecasts are not estimates of bed occupancy or causal health effects.
 
-\noindent\textbf{KEYWORDS.} Hierarchical forecasting. MinT reconciliation. Epidemiological surveillance.
-
-\noindent\textbf{Paper topics:} EST -- Statistics; SA -- OR in Health.
-
+\noindent\textbf{KEYWORDS.} Hierarchical forecasting. RSV. LightGBM. Reconciliation.
 \newpage
-%=====================================================================
-\section{Introduction}
+\section{Problem and scope}
+The study asks whether historical notifications support forecasts of weekly RSV-associated hospitalized cases that remain consistent across state, regional and national totals. The target is a surveillance count: children with hospitalization recorded and laboratory confirmation of RSV, grouped by symptom onset and state of residence. It is not all RSV infections, hospital admissions dated by admission week, or beds occupied in the state where treatment occurred. Population denominators were not included; SINASC was considered in the initial proposal but did not enter the executed models.
 
-Respiratory syncytial virus (RSV) is a major cause of severe respiratory disease in infants and drives a seasonal surge in pediatric hospital demand. In Brazil this surge is neither simultaneous nor equally intense across the territory: a single national forecast hides local pressure, while independent state forecasts typically do not add up to the regional or national totals. A health manager who reads three inconsistent numbers for the same week cannot act on them jointly.
+The contribution is a documented chain from microdata to coherent forecasts, with comparisons against simple benchmarks. Hierarchical reconciliation adjusts independently generated forecasts to satisfy geographic sums \cite{fpp}. It does not guarantee better accuracy, and the selected policy is not claimed to be universally optimal. The original stages 20--40 and the extensions 41--43 are distinguished throughout this report.
 
-The guiding question of this study is:
+\section{Data treatment: stages 1--11}
+The source is SIVEP-Gripe SARI microdata published by the Brazilian Ministry of Health \cite{data}. Eight Parquet files for 2019--2026 contain 4,678,812 notifications and 194 common fields (333.67 MB). The filenames for 2019--2024 identify 23 March 2026; those for 2025--2026 identify 19 October 2026. The download manifest records URLs, sizes and SHA-256 hashes. These identify the extraction; code and package versions also matter for reproduction.
 
-\begin{quote}
-\emph{Is it possible to forecast, 1 to 13 weeks ahead, the weekly number of RSV-associated SARI hospitalizations in children under two, while keeping the forecasts coherent across state, region and country?}
-\end{quote}
+Eligibility requires a valid onset date, valid age $0\leq\text{months}<24$, valid state of residence, hospitalization recorded, and RSV confirmation by PCR or antigen. Missing tests are not treated as negative. Two duplicated notification identifiers, represented by four rows, were investigated. Temporal consistency and update criteria retained one version per identifier, removing two rows. The resulting individual dataset has 158,358 records.
 
-The contribution is not a single best model, but a \emph{forecasting policy}: a rule, chosen by horizon, that (i) is validated without temporal leakage, (ii) beats or matches simple benchmarks, (iii) makes the 27 states sum exactly to their 5 regions and to Brazil, and (iv) never produces negative counts. The target is the series of notified, laboratory-confirmed hospitalizations; it is not an estimate of total community RSV incidence.
+Aggregation produces 407 epidemiological weeks from 30 December 2018 to 11 October 2026 and 13,431 rows ($33\times407$). Closed-week totals were checked for geographic coherence. The final partial week is not converted into a zero count. Weeks with a genuine recorded zero and weeks with incomplete coverage are kept conceptually distinct.
 
-The paper is organized as follows. Section~\ref{sec:data} defines the data and the outcome; Section~\ref{sec:eda} summarizes the exploratory findings that shaped the modeling; Section~\ref{sec:method} describes the evaluation design, the models and the reconciliation methods; Section~\ref{sec:results} reports the results; Section~\ref{sec:op} applies the policy to the latest data; and Section~\ref{sec:conc} concludes.
+The delay proxy combines reporting and laboratory availability dates. Its global 95th percentile is 50 days, and the maximum annual percentile is 86 days in 2021. A closed week at least 13 weeks older than the source cutoff is treated as mature. This leaves 395 mature weeks through 19 July 2026 and 155,304 mature cases. Maturity is a conservative filter, not proof of final completeness. The snapshot does not reconstruct when each record first became publicly available.
 
-%=====================================================================
-\section{Data and Outcome Definition}\label{sec:data}
-
-\subsection{Source}
-The primary source is the SIVEP-Gripe SARI microdata (2019--2026) published by OpenDataSUS. Eight annual Parquet files (333.67\,MB, 4{,}678{,}812 raw notifications, 194 fields common to all years) were \emph{frozen} and verified by URL, size and SHA-256 hash, so that the analysis refers to an identifiable version of a dataset that is periodically republished.
-
-\subsection{Case definition}
-A record enters the study when all conditions hold: valid symptom-onset date; age between 0 and 24 months (exclusive); valid state of residence; hospitalization recorded; and RSV confirmed by PCR \emph{or} antigen test. Missing tests were never interpreted as negative results. The data treatment chain is summarized in Table~\ref{tab:treat}.
-
-\begin{table}[H]
-\centering\small
-\caption{Data treatment decisions.}\label{tab:treat}
-\begin{tabular}{p{2.6cm}p{5.2cm}p{6.2cm}}
-\toprule
-Step & Decision & Rationale / result \\
-\midrule
-Source & Freeze 8 official files & Exact reproducibility. \\
-Structure & Inventory all 194 columns & Fields chosen by meaning, not by acronym. \\
-Time axis & Symptom-onset date & Complete, closest to epidemiological onset. \\
-Geography & State of residence & High completeness. \\
-Confirmation & PCR $\cup$ antigen & No lost confirmations, no double counting. \\
-Duplicates & Deterministic tie-break rule & 2 duplicated notifications; 2 rows removed. \\
-Reporting delay & Flag maturity, keep recent weeks & Separates observed from consolidated data. \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The final individual-level base contains \textbf{158{,}358} eligible notifications, aggregated by epidemiological week into a panel of 33 geographic nodes (27 states, 5 regions, Brazil) $\times$ 407 weeks (30/12/2018 to 11/10/2026). In closed weeks the sum of states equals Brazil exactly.
-
-\subsection{Data maturity}
-Recent counts are incomplete because notifications and lab results arrive late. The annual median delay between onset and availability ranged from 8 to 13 days, and the largest annual 95th percentile reached 86 days (2021). A week was therefore considered \emph{mature} if it was closed and at least 13 weeks older than the source cutoff (19/10/2026). Only the 395 mature weeks (up to 19/07/2026) were used for training and evaluation; the 12 most recent weeks were neither discarded nor treated as zeros, simply not used as targets.
-
-%=====================================================================
-\section{Exploratory Analysis}\label{sec:eda}
-
-\textbf{Seasonality with variable level.} Brazil and all regions show a clear annual cycle (Figures~\ref{fig:br} and \ref{fig:saz}). National peaks occurred between epidemiological weeks 11 and 19 (roughly March--May). The Southeast and Center-West peak earlier and more sharply; the Northeast peaked later in recent years; North and South vary more in timing. The level, however, is far from stationary: the national season total went from 5{,}029 (2019) to 1{,}120 (2020), 11{,}124 (2021), 14{,}969 (2022) and 43{,}152 (2025). The pandemic years were kept in the history and not given a causal interpretation, since circulation, testing and reporting all changed.
+\section{Exploratory analysis: stages 12--19}
+The series show seasonal patterns, short-term dependence and changing levels. National peaks in complete seasons occurred between epidemiological weeks 11 and 19. Timing and amplitude vary geographically, motivating separate forecasts for distinct levels. Thirteen states have more than 50\% of mature weeks with zero cases. Such zeros refer to recorded confirmed cases; they do not establish absence of viral circulation.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{etapa_13_series_brasil_regioes/serie_temporal_brasil.png}
-\caption{Weekly RSV-associated SARI hospitalizations, children under two, Brazil.}\label{fig:br}
+\includegraphics[width=.94\textwidth,height=6cm,keepaspectratio]{etapa_13_series_brasil_regioes/serie_temporal_brasil.png}
+\caption{Registered hospitalized cases by symptom-onset week, Brazil. The recent segment is distinguished in the exploratory output.}
 \end{figure}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{etapa_14_sazonalidade/sazonalidade_brasil_regioes.png}
-\caption{Seasonal profile by epidemiological week, Brazil and regions.}\label{fig:saz}
-\end{figure}
+The pandemic years were retained. Changes in circulation, testing and notification cannot be separated causally with the variables and design used here. Level and variability change across seasons; a strong autocorrelation or an apparent seasonal pattern alone does not select a forecasting model.
 
-\textbf{Strong temporal dependence.} The lag-1 autocorrelation is 0.987 for Brazil and 0.965--0.983 for the regions; at the annual lags 52 and 53 it remains high for Brazil (0.845 and 0.874), supporting both persistence-based and seasonal models (Figure~\ref{fig:acf}).
+\section{Evaluation and model development}
+\subsection{Temporal evaluation and metrics}
+There are 58 expanding evaluation origins, from 19 December 2021 to 19 April 2026, spaced four weeks apart, with at least 156 weeks of initial training. Horizons are $h\in\{1,4,8,13\}$. Each horizon predicts one target week, not the cumulative total up to that horizon. This yields 1,392 forecasts per method over Brazil and the five regions, or 7,656 over the full hierarchy.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{etapa_17_autocorrelacao/acf_brasil_regioes.png}
-\caption{Sample autocorrelation functions, Brazil and regions.}\label{fig:acf}
-\end{figure}
+Training targets do not exceed their forecast origin. However, the historical series comes from a consolidated snapshot; this is not an as-published real-time evaluation. Moreover, the same 58 origins were used for model/policy selection and performance reporting. No untouched test or formal statistical significance assessment was conducted.
 
-\textbf{Heterogeneity and intermittency at state level.} The Southeast concentrates 42.9\% of mature cases and the North 5.5\%. Thirteen states have more than half of their mature weeks with zero cases (Piauí, Mato Grosso, Tocantins and Alagoas exceed 70\%), whereas São Paulo has only 3.0\% (Figure~\ref{fig:uf}). This is the decisive finding for modeling: dense aggregate series and sparse state series call for different forecasting rules.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.95\textwidth]{etapa_15_ufs_intermitencia/ufs_volume_intermitencia.png}
-\caption{Case volume versus share of zero weeks by state.}\label{fig:uf}
-\end{figure}
-
-%=====================================================================
-\section{Methodology}\label{sec:method}
-
-\subsection{Temporal validation design}
-Models were compared through expanding-window (rolling-origin) evaluation: each forecast uses only information available at its origin. There are 58 origins per series, starting with at least 156 weeks of history and moving forward every 4 weeks up to 19/04/2026 (Figure~\ref{fig:cal}). Four horizons reflect planning needs: $h=1$ (immediate monitoring), $h=4$ (monthly), $h=8$ (two months) and $h=13$ (one quarter). For Brazil and regions each model yields $6\times58\times4=1{,}392$ forecasts; for the full hierarchy each strategy yields $33\times58\times4=7{,}656$.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{etapa_19_validacao_temporal/calendario_validacao_brasil.png}
-\caption{Rolling-origin validation calendar over the national series.}\label{fig:cal}
-\end{figure}
-
-Accuracy was measured by MAE, RMSE and MASE. MAE and RMSE are in cases; MASE divides the absolute error by a seasonal scale, the mean absolute error of the seasonal naive within the training window of each origin, $\mathrm{MASE}=|y_{t+h}-\hat y_{t+h}|\,/\,q_o$ with $q_o=\operatorname{mean}_{t\le o}|y_t-y_{t-52}|$. It is computed with data available up to the origin only (348 scales for Brazil and regions, all positive), making series with very different volumes comparable. A MASE below 1 means the forecast error is smaller than the typical year-over-year change of the series. A model was eligible for ranking only with full coverage (all origins and horizons), no impossible values and, at the hierarchical stage, coherence.
-
-\subsection{Individual (non-hierarchical) models}
-\begin{itemize}\setlength\itemsep{0pt}
-\item \textbf{Naive}: $\hat y_{t+h}=y_t$.
-\item \textbf{Seasonal naive}: $\hat y_{t+h}=y_{t+h-52k}$, the value one season earlier.
-\item \textbf{ETS}: additive seasonal ($m=52$), with additive trend and with damped additive trend. Default initialization failed to converge frequently; a robust heuristic initialization was adopted, after which all 348 expected fits converged.
-\item \textbf{SARIMA}: two classical seasonal specifications.
-\item \textbf{SARIMAX harmonic}: ARMA(1,1) on $\log(1+y)$ with 2 Fourier pairs of period $52.18$ weeks as regressors, a more stable way to represent the annual cycle.
-\end{itemize}
-
-\subsection{Hierarchical structure and base forecasts}
-Let $\mathbf{b}_t\in\mathbb{R}^{27}$ be the state series and $\mathbf{y}_t=\mathbf{S}\mathbf{b}_t\in\mathbb{R}^{33}$ the full hierarchy, where the summing matrix $\mathbf{S}$ stacks a row of ones (Brazil), five regional indicator rows and $\mathbf{I}_{27}$. A set of independent base forecasts $\hat{\mathbf{y}}_h$ is \emph{coherent} if $\hat{\mathbf{y}}_h=\mathbf{S}\hat{\mathbf{b}}_h$ for some $\hat{\mathbf{b}}_h$.
-
-The \textbf{Base V2} is the collection of the best independent forecast per level and horizon (it is a forecast set, not a new dataset): damped ETS for Brazil and regions and naive for states at $h\in\{1,4\}$; seasonal naive for every node at $h\in\{8,13\}$. Because the seasonal naive is linear, Base V2 is already coherent at 8 and 13 weeks, but not at short horizons.
-
-\subsection{Reconciliation methods}
-Linear reconciliation maps base forecasts into coherent ones through $\tilde{\mathbf{y}}_h=\mathbf{S}\mathbf{G}\hat{\mathbf{y}}_h$. Six strategies were compared:
-\begin{itemize}\setlength\itemsep{0pt}
-\item \textbf{Bottom-up}: forecast the states, aggregate upward.
-\item \textbf{Top-down (global and seasonal)}: disaggregate the national forecast with historical or season-specific state shares.
-\item \textbf{Structural WLS}: $\mathbf{G}=(\mathbf{S}^\top\mathbf{W}^{-1}\mathbf{S})^{-1}\mathbf{S}^\top\mathbf{W}^{-1}$ with $\mathbf{W}=\operatorname{diag}(\mathbf{S}\mathbf{1})$.
-\item \textbf{MinT-OAS}: the same projection with $\mathbf{W}_h$ the covariance of base forecast errors. Because many states are intermittent, the empirical covariance (39 calibration vectors, 33 nodes) is rank deficient (rank 26--32), so it was regularized with Oracle Approximating Shrinkage (intensity 0.24--0.53) and a floor on error standard deviations.
-\item \textbf{Non-negative MinT}: the MinT problem solved as a constrained quadratic program,
+MAE and RMSE are reported in cases. MASE uses the training-only seasonal scale for series $i$ and origin $o$:
 \begin{equation}
-\min_{\mathbf{b}\ge \mathbf{0}}\;(\hat{\mathbf{y}}_h-\mathbf{S}\mathbf{b})^\top\mathbf{W}_h^{-1}(\hat{\mathbf{y}}_h-\mathbf{S}\mathbf{b}),\qquad \tilde{\mathbf{y}}_h=\mathbf{S}\mathbf{b}^\ast,
+q_{i,o}=\frac{1}{n_o-52}\sum_{t=53}^{n_o}|y_{i,t}-y_{i,t-52}|,
+\qquad e^{\mathrm{scaled}}_{i,o,h}=\frac{|y_{i,o+h}-\hat y_{i,o+h}|}{q_{i,o}}.
 \end{equation}
-so that non-negativity is imposed on the 27 states \emph{inside} the optimization and regions and Brazil follow by aggregation. Truncating negatives to zero after an unconstrained reconciliation would break coherence.
-\end{itemize}
+MASE averages these scaled errors. It is not a percentage of accuracy. A value below one compares the forecast error to the historical seasonal variation in the denominator, not automatically to a competing out-of-sample forecast. Level means may conceal individual states with worse performance.
 
-%=====================================================================
-\section{Results}\label{sec:results}
+\subsection{Classical models and initial policy: stages 20--40}
+The first comparison included naive persistence, seasonal naive with a 52-week reference, additive seasonal ETS with alternative trend specifications, classical SARIMA and SARIMAX with annual Fourier harmonics. Damped-trend additive ETS with heuristic initialization was selected for the six aggregate series at short horizons; the classical SARIMA candidates lacked full convergence coverage. Harmonic SARIMAX was more stable but did not outperform the selected alternatives in that round.
 
-\subsection{Non-hierarchical comparison (Brazil and regions)}
-The two classical SARIMA specifications converged in only 279--282 of 348 fits (about 80\% coverage) and were excluded from the ranking rather than promoted for being more sophisticated. Table~\ref{tab:nh} and Figure~\ref{fig:nh} show the remaining models.
+The first independent forecast set used seasonal naive at state level. Base V2 replaced short-horizon state forecasts by naive persistence, while keeping damped ETS for Brazil/regions and seasonal naive for every node at eight/thirteen weeks. These are forecast sets, not new patient datasets. The first policy (stage 37, consolidated through stage 40) applied non-negative MinT at one/four weeks and retained the already coherent seasonal naive at eight/thirteen. It is a historical comparator in the present report.
+
+\subsection{Intermittency and pooled learning: stages 41--42}
+Stage 41 compared Croston classic, optimized and SBA variants; TSB; ADIDA; IMAPA; seasonal TSB; a negative-binomial GLM with Fourier terms; and a Tweedie-loss LightGBM trained jointly on the 27 state series. LightGBM is gradient-boosted decision-tree learning, not deep learning \cite{lgbm}. It had the smallest mean state MASE per horizon among the evaluated candidates. At thirteen weeks its advantage over the seasonal reference was negligible. ADI/CV-squared classifications describe the complete series; they should not be interpreted as prospective labels.
+
+Base V3 keeps the aggregate forecasts of V2 and substitutes the pooled state LightGBM. Stage 42 adds a second LightGBM trained on all 33 nodes, normalizing each node by its training mean (with a floor of 0.1). Predictors include recent counts, a seasonal reference, moving averages, zero frequency, target calendar and node identifiers. Direct models are fitted per horizon and origin, with training targets restricted to the origin. No climate or mobility data were added. The 33 series are not independent replicates: aggregates overlap their components. Normalization reduces scale differences but does not guarantee equal statistical influence.
+
+Base V4 selects candidates by geographic level and horizon using mean MASE. Selection before reconciliation need not yield the best reconciled combination, which motivated a further comparison of V3 and V4 after reconciliation.
+
+\subsection{Hierarchical reconciliation}
+Let $\mathbf b\in\mathbb R^{27}$ represent states and $\mathbf y=\mathbf S\mathbf b\in\mathbb R^{33}$ the full hierarchy. The summing matrix stacks the national sum, five regional sums and the state identity. The study compared bottom-up, global and seasonal top-down, structural WLS, MinT-OAS and non-negative MinT. Structural WLS and unrestricted MinT generated negative counts in the historical comparison. Clipping negatives after projection can break geographic sums.
+
+Non-negative reconciliation solves
+\begin{equation}
+\mathbf b^*=\underset{\mathbf b\geq0}{\operatorname{argmin}}\;
+(\hat{\mathbf y}_h-\mathbf S\mathbf b)^\top\mathbf W_h^{-1}(\hat{\mathbf y}_h-\mathbf S\mathbf b),
+\qquad \tilde{\mathbf y}_h=\mathbf S\mathbf b^*.
+\end{equation}
+The implementation estimates error covariance from 39 calibration origins before formal evaluation, spanning December 2020 to September 2021, using the relevant base models. OAS shrinkage and an error-scale floor regularize covariance. The non-negative constraint acts on states inside optimization; aggregate totals follow by summation. Calibration across the pandemic period remains a limitation.
+
+\section{Final policy and retrospective results: stage 43}
+Table~\ref{tab:policy} defines the current composition. Every horizon passes through non-negative MinT-OAS. In particular, the current long-horizon forecasts are no longer simply the seasonal naive at all nodes.
 
 \begin{table}[H]
 \centering\small
-\caption{Average MASE, Brazil and regions (348 evaluations per cell). Best per horizon in bold.}\label{tab:nh}
-\begin{tabular}{lcccc}
+\caption{Final independent forecasts, before non-negative MinT-OAS at every horizon.}\label{tab:policy}
+\begin{tabular}{llll}
 \toprule
-Model & $h=1$ & $h=4$ & $h=8$ & $h=13$ \\
+Level & $h=1,4$: V3 & $h=8$: V4 & $h=13$: V4\\
 \midrule
-Naive & 0.554 & 1.720 & 3.001 & 4.338 \\
-Seasonal naive & 1.610 & 1.670 & \textbf{1.741} & \textbf{1.823} \\
-ETS additive seasonal & 0.551 & 1.511 & 2.628 & 3.660 \\
-ETS damped trend & \textbf{0.507} & \textbf{1.311} & 2.660 & 4.010 \\
-SARIMAX harmonic & 0.621 & 1.462 & 2.256 & 2.654 \\
+Brazil & Damped ETS & Seasonal naive & Seasonal naive\\
+Regions & Damped ETS & LightGBM 33 & Seasonal naive\\
+States & LightGBM 27 & LightGBM 33 & LightGBM 33\\
 \bottomrule
 \end{tabular}
+\end{table}
+
+V3 at short horizons is a compromise, not a dominant solution. At one week, reconciled V4 has lower national MASE (0.274 versus 0.288), while V3 favors regions and states. At four weeks, V3 favors Brazil and regions, while V4 has lower state MASE. No clinical weighting scheme or single aggregate utility function was estimated to resolve these trade-offs.
+
+\begin{table}[H]
+\centering\small
+\caption{MASE: previous policy (stage 37) $\to$ current policy (stage 43).}\label{tab:results}
+\input{../APRESENTACAO_RESULTADOS/tabelas/desempenho_artigo.tex}
+\end{table}
+
+The current policy improves MASE in 11 of 12 level--horizon combinations, with a small deterioration for regions at thirteen weeks. National four-week MAE falls from 190.5 to 121.9 cases and MASE decreases by approximately 33.3\%. This is a reduction in measured error on the evaluated origins, not a percentage increase in clinical accuracy or a reduction in actual hospitalizations. The comparison changes both base models and reconciliation inputs; it does not isolate a causal effect of MinT.
+
+\begin{figure}[H]
+\centering\includegraphics[width=\textwidth]{baselines_vs_politica.png}
+\caption{Simple benchmarks versus the current policy. Smaller MASE is better. The seasonal reference remains competitive at longer horizons.}
+\end{figure}
+
+\begin{figure}[H]
+\centering\includegraphics[width=\textwidth,height=7cm,keepaspectratio]{brasil_obs_vs_prev.png}
+\caption{National observed counts and current forecasts. Forecast markers correspond to evaluation origins four weeks apart; lines between markers are visual guides, not forecasts at every intervening origin.}
+\end{figure}
+
+\section{Demonstrative application and uncertainty}
+The last mature origin is 19 July 2026. The application produces 132 point forecasts, one for each node and horizon. These are snapshot-based demonstrations for the target weeks shown below, not a live forecast issued in November 2026. Values are expected weekly counts and may be fractional.
+
+\begin{table}[H]
+\centering\small
+\caption{Brazil: current point forecasts and empirical marginal bands.}\label{tab:operational}
+\input{../APRESENTACAO_RESULTADOS/tabelas/operacional_artigo.tex}
 \end{table}
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{etapa_26_comparacao_modelos_nao_hierarquicos/comparacao_modelos_nao_hierarquicos.png}
-\caption{MASE and MAE by horizon for the eligible non-hierarchical models.}\label{fig:nh}
+\centering\includegraphics[width=\textwidth]{brasil_previsao_operacional.png}
+\caption{Demonstrative forecast from the last mature origin. Bands are shown only at the four evaluated target weeks; no intervening weekly trajectory is inferred.}
 \end{figure}
 
-The best model depends on the horizon. Damped ETS wins at 1 and 4 weeks, when the recent level carries most of the information. At 8 and 13 weeks the error of every adaptive model grows almost linearly, while the seasonal naive stays flat around MASE 1.7--1.8: repeating last season is the most robust long-range statement. The SARIMAX harmonic model was stable but never best.
+The bands use empirical residual quantiles by node and horizon. Mean leave-one-out (LOO) coverage by level and horizon ranges from 75.86\% to 79.31\% for nominal 80\% bands and from 91.38\% to 93.10\% for nominal 95\% bands. These ranges concern level means, not the minimum coverage of every node. Coverage is below nominal. LOO excludes the error being assessed but can use errors from later origins, so this is retrospective interval diagnostics, not forward operational validation. Marginal interval bounds do not necessarily aggregate, even though point forecasts do.
 
-For the 27 states, the naive model was best at 1 and 4 weeks (mean MASE 1.145 and 2.285) and the seasonal naive at 8 and 13 weeks (2.990 and 3.122). For intermittent series, carrying forward the last count is hard to beat in the very short term.
+The stage-43 alert table contains no adjustment beyond the historical 95th-percentile threshold used by the diagnostic. This differs from the earlier stage-38A alerts. An empty alert table only means the implemented threshold was not exceeded; it is not evidence of accuracy or clinical safety.
 
-\subsection{Incoherence of independent forecasts}
-Independent forecasts do not sum. With the first base set, the mean absolute gap between the national forecast and the sum of state forecasts was 253 cases at $h=1$ and 334 at $h=4$. Base V2 reduced it to 53 and 166 cases, respectively (Figure~\ref{fig:inc}), but coherence still held in 0\% of the national comparisons at short horizons. Reconciliation is therefore necessary, not cosmetic.
+\section{Limitations and conclusion}
+Testing coverage, reporting and changing surveillance practices affect comparability. Pandemic-era changes were not causally attributed. Sparse state series remain difficult, and aggregate averages can hide local failures. No population denominator, hospital-flow model, length-of-stay model or immunization intervention was used to establish incidence, occupancy or causal effects.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.95\textwidth]{etapa_30_previsoes_base_hierarquicas_v2/comparacao_incoerencia_base_v1_v2.png}
-\caption{Aggregation gap of base forecast sets V1 and V2.}\label{fig:inc}
-\end{figure}
+The same evaluation origins informed model and policy selection, so the reported improvements may be optimistic by an unknown amount. There is no independent final test and no formal demonstration of statistical significance. A consolidated snapshot does not reproduce historical information availability; a maturity filter does not replace archived vintages or nowcasting. Calibration stability and prospective interval coverage require additional assessment.
 
-\subsection{Hierarchical comparison}
-All reconciliation strategies achieved coherence up to numerical precision (maximum gap $8.6\times10^{-11}$ for non-negative MinT). Coherence alone, however, did not decide the choice. Table~\ref{tab:neg} shows that structural WLS and unconstrained MinT-OAS produced a material number of negative state and regional counts at short horizons, which are not acceptable for hospitalization counts. Non-negative MinT produced none, and all 232 optimizations converged.
+Within those limits, the study delivers a documented comparison of simple, classical, intermittent and pooled machine-learning forecasts, combined with coherent and non-negative territorial totals. The extension beyond the classical models improved most retrospective level--horizon comparisons. The defensible next step is to freeze the policy and evaluate new mature weeks without selecting again on the test outcomes. Operational adoption would additionally require timely data handling and validation against the actual planning target.
 
-\begin{table}[H]
-\centering\small
-\caption{Number of negative forecasts by method (states: 1{,}566 forecasts per horizon; regions: 290).}\label{tab:neg}
-\begin{tabular}{lcccc}
-\toprule
-Method & UF $h=1$ & UF $h=4$ & Region $h=1$ & Region $h=4$ \\
-\midrule
-Structural WLS & 248 & 316 & 9 & 17 \\
-MinT-OAS (unconstrained) & 269 & 312 & 5 & 18 \\
-Non-negative MinT & 0 & 0 & 0 & 0 \\
-Bottom-up, top-down, Base V2 & 0 & 0 & 0 & 0 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\section*{Reproduction and evidence}
+The repository branch is \texttt{reorganizacao-reprodutivel}. Six ordered notebooks cover stages 1--43. The current evidence is in \texttt{etapa\_43\_politica\_final}, especially the composition, performance, interval and alert tables. Presentation tables are generated from these CSVs; graphics use their saved predictions. This document revision did not retrain models. Cached candidate forecasts, package versions, data hashes and execution paths must be checked when reproducing training; see \texttt{docs/REPRODUTIBILIDADE.md}. This is a course report in an SBPO-inspired layout, not a certification of conference submission compliance.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{etapa_37_comparacao_final_hierarquica/comparacao_mase_metodos_hierarquicos.png}
-\caption{MASE by horizon and hierarchical level for all strategies.}\label{fig:hier}
-\end{figure}
-
-Figure~\ref{fig:hier} and Table~\ref{tab:hier} summarize accuracy. Bottom-up degrades the aggregates (national MASE 0.415 vs.\ 0.315 at $h=1$) and top-down degrades the regions (MASE above 1.3 at $h=1$). Non-negative MinT improves the states at both short horizons and the regions at $h=1$, at the cost of a small loss for Brazil and for the regions at $h=4$. At 8 and 13 weeks all methods coincide with Base V2, which is already coherent.
-
-\begin{table}[H]
-\centering\small
-\caption{Average MASE: Base V2 (independent) vs.\ non-negative MinT.}\label{tab:hier}
-\begin{tabular}{llccl}
-\toprule
-Level & Horizon & Base V2 & NN-MinT & Reading \\
-\midrule
-Brazil & 1 & \textbf{0.315} & 0.332 & Base V2 better \\
-Brazil & 4 & \textbf{1.110} & 1.202 & Base V2 better \\
-Region & 1 & 0.545 & \textbf{0.534} & MinT slightly better \\
-Region & 4 & \textbf{1.351} & 1.417 & Base V2 better \\
-State  & 1 & 1.145 & \textbf{1.133} & MinT better \\
-State  & 4 & 2.285 & \textbf{2.211} & MinT better \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-There is no universal winner. The trade-off is explicit: reconciliation moves information from the aggregates to the sparse states, improving the level where forecasts are hardest, and in exchange accepts a small loss at the national level.
-
-\subsection{Final forecasting policy}
-\begin{table}[H]
-\centering\small
-\caption{Recommended policy by horizon.}\label{tab:policy}
-\begin{tabular}{lll}
-\toprule
-Horizon & Forecast & Reason \\
-\midrule
-1 week & Non-negative MinT & Coherent, non-negative, better for states \\
-4 weeks & Non-negative MinT & Same trade-off \\
-8 weeks & Seasonal naive (Base V2) & Already coherent; no gain from reconciliation \\
-13 weeks & Seasonal naive (Base V2) & Same argument \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-If the only need is an isolated short-term national number, the direct Base V2 forecast has lower error. When states, regions and Brazil must be reported together, the policy in Table~\ref{tab:policy} is the most defensible choice.
-
-%=====================================================================
-\section{Operational Forecast and Uncertainty}\label{sec:op}
-
-After validation was closed, the policy was applied to the last mature origin (19/07/2026), producing 132 forecasts (33 nodes $\times$ 4 horizons) for 26/07/2026 to 18/10/2026. Empirical intervals were derived from the policy's historical residuals over the 58 origins.
-
-\begin{table}[H]
-\centering\small
-\caption{Operational forecast for Brazil with empirical intervals.}\label{tab:op}
-\begin{tabular}{lccc}
-\toprule
-Horizon & Point forecast & 80\% band & 95\% band \\
-\midrule
-1 week & 751 & 668--829 & 606--892 \\
-4 weeks & 556 & 268--914 & 0--1{,}097 \\
-8 weeks & 187 & 0--693 & 0--1{,}267 \\
-13 weeks & 83 & 0--569 & 0--1{,}126 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Leave-one-out coverage was 76.9--78.4\% for the nominal 80\% bands and 89.7--93.1\% for the 95\% bands: close to, but below, nominal. The bands are therefore practical references, not formal probabilistic guarantees, and they are marginal (state, regional and national bounds do not sum, although the point forecasts do).
-
-A plausibility check flagged that, at this origin, reconciliation shifted the national forecast by 129.2 cases at $h=1$ and 551.0 at $h=4$, well above the historical range of adjustments. This reflects an unusual disagreement between the national ETS and the persistence of the state series at that point of the season, not a coding error. The rule was not changed after seeing the result (that would be post-hoc selection); instead, the forecast is reported as a \emph{reconciled scenario under high disagreement}.
-
-%=====================================================================
-\section{Limitations}
-\begin{enumerate}\setlength\itemsep{0pt}
-\item The series counts notified, confirmed hospitalizations, not all RSV infections; testing coverage varies across years.
-\item Changes in testing and reporting, especially in 2020--2021, affect comparability between seasons; the MinT covariance is calibrated across this regime change.
-\item Model and policy selection used the same 58 validation origins; a truly independent future evaluation is still pending.
-\item Horizons of 8 and 13 weeks carry wide uncertainty and should support scenarios, not exact figures.
-\item Reporting delay was handled by excluding immature weeks, not by nowcasting them.
-\end{enumerate}
-
-%=====================================================================
-\section{Conclusion}\label{sec:conc}
-
-Starting from public microdata and a fully traceable pipeline, this study built a weekly forecasting chain for RSV-associated SARI hospitalizations in children under two at three geographic levels. The central methodological finding is that no single model should be sought: performance depends on the horizon, the geographic level and the intended use. Damped ETS is the best short-term model for dense aggregate series, the seasonal naive remains the most robust option at 8 and 13 weeks, and naive persistence is hard to beat for intermittent states.
-
-Hierarchical reconciliation is needed to publish consistent numbers, but coherence is not enough: unconstrained MinT and WLS generate negative counts, and post-hoc truncation would break coherence. Imposing non-negativity inside the MinT optimization solves both problems and improves state-level accuracy, at a small and explicit cost at the national level. The resulting policy delivers a single, coherent and feasible territorial view, with uncertainty and plausibility warnings attached.
-
-The natural next step is not to fit yet another model on the same origins, but to apply the frozen policy to future mature weeks and evaluate it on an independent window, possibly combined with a nowcasting layer for reporting delays.
-
+\begin{thebibliography}{9}
+\bibitem{data} Ministério da Saúde. SRAG 2019 a 2026, SIVEP-Gripe. Dataset catalog: \url{https://dadosabertos.saude.gov.br/dataset/srag-2019-a-2026}. Exact files and hashes are recorded in the project manifest.
+\bibitem{fpp} Hyndman, R. J. and Athanasopoulos, G. \emph{Forecasting: Principles and Practice}, 3rd ed., Section 11.3, Forecast reconciliation. \url{https://otexts.robjhyndman.com/fpp3/reconciliation.html}.
+\bibitem{lgbm} Ke, G. et al. (2017). LightGBM: A Highly Efficient Gradient Boosting Decision Tree. \emph{Advances in Neural Information Processing Systems 30}. \url{https://proceedings.neurips.cc/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html}.
+\end{thebibliography}
 \end{document}

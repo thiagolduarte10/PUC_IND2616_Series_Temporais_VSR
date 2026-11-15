@@ -104,270 +104,221 @@
 \date{Novembro de 2026}
 
 \begin{document}
-
-% ===============================================================
 \begin{frame}[plain]
   \begin{tikzpicture}[remember picture,overlay]
     \fill[pucnavy] (current page.south west) rectangle (current page.north east);
     \fill[pucblue,opacity=.35] ([xshift=-.6cm,yshift=.4cm]current page.south east) circle (4.2cm);
     \fill[puccyan,opacity=.22] ([xshift=-2.6cm,yshift=-.6cm]current page.south east) circle (2.4cm);
     \fill[pucorange] (current page.north west) rectangle ([xshift=.25cm]current page.south west);
-    \node[anchor=north west,text width=11.3cm,align=left,inner sep=0pt]
-      at ([xshift=1.4cm,yshift=-1.2cm]current page.north west) {%
-      {\color{puccyan}\large\bfseries IND2616: Séries Temporais}\par\vspace{.6cm}
-      {\color{white}\fontsize{24}{29}\selectfont\bfseries
-        Previsão de internações por VSR: análise dos resultados\par}
-      \vspace{.4cm}
-      {\color{white!78!pucnavy}\large Desempenho da política final em Brasil, regiões e UFs.\par}
-      \vspace{.45cm}
+    \node[anchor=north west,text width=11.5cm,align=left,inner sep=0pt]
+      at ([xshift=1.3cm,yshift=-1.1cm]current page.north west) {
+      {\color{puccyan}\large\bfseries IND2616: Séries Temporais}\par\vspace{.5cm}
+      {\color{white}\fontsize{25}{29}\selectfont\bfseries
+        VSR: dos dados às previsões hierárquicas\par}\vspace{.4cm}
+      {\color{white!80!pucnavy}\large Resultados consolidados até a etapa 43\par}\vspace{.5cm}
       {\color{pucorange}\rule{2.2cm}{2pt}}\par\vspace{.3cm}
-      {\color{white}\normalsize Thiago Paes \quad Joan Souza \quad Matheus Accioly \quad Isabelle Gagno\par}
-      \vspace{.15cm}
-      {\color{white!65!pucnavy}\small Mestrado PUC-Rio \quad|\quad Prof. Fernando Cyrino
-        \quad|\quad Novembro de 2026\par}
+      {\color{white}\normalsize Thiago Paes \quad Joan Souza\par Matheus Accioly \quad Isabelle Gagno\par}\vspace{.25cm}
+      {\color{white!75!pucnavy}\small Mestrado PUC-Rio | Prof. Fernando Cyrino\par
+      Revisão: 14/11/2026 | Parte principal: 5--7 minutos\par}
     };
   \end{tikzpicture}
 \end{frame}
 
-% ===============================================================
-\begin{frame}{O que está sendo avaliado}
+\begin{frame}{O problema e o que estamos contando}
+  \begin{mensagem}
+  Antecipar casos hospitalizados de SRAG com VSR em menores de dois anos, com previsões compatíveis entre UF, região e Brasil.
+  \end{mensagem}
   \begin{columns}[T,onlytextwidth]
-    \begin{column}{.5\textwidth}
-      \rotulo{Desenho}
+    \begin{column}{.48\textwidth}
+      \rotulo{Dados oficiais: SIVEP-Gripe}
       \begin{itemize}
-        \item 33 séries: Brasil, 5 regiões e 27 UFs.
-        \item 58 origens expansivas, sem vazamento (dez/2021 a abr/2026).
-        \item Horizontes de 1, 4, 8 e 13 semanas.
-        \item MASE: erro dividido pela escala do ingênuo sazonal de cada série; compara UF pequena com Brasil.
+        \item 8 arquivos de 2019 a 2026; 194 campos.
+        \item 4,68 milhões de notificações brutas.
+        \item 158.358 registros no recorte final.
+        \item Idade de zero a \textbf{menos de 24 meses}.
       \end{itemize}
     \end{column}
-    \begin{column}{.46\textwidth}
-      \rotulo{Duas previsões comparadas}
-      \begin{cartao}
-        \textbf{Base V2}: previsões independentes por série\par
-        \footnotesize Saem diretamente dos modelos estatísticos. Não somam entre níveis.
-      \end{cartao}
-      \vspace{2pt}
-      \begin{cartao}
-        \textbf{Política final}: Base V2 + reconciliação\par
-        \footnotesize Os mesmos modelos, ajustados pelo MinT para que UFs somem regiões e Brasil, sem negativos.
-      \end{cartao}
-      \nota{O MinT não é um modelo de previsão: ele só ajusta previsões que já existem.}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-% ===============================================================
-\begin{frame}{Como a previsão final é construída}
-  \footnotesize
-  \centering
-  \begin{tabular}{lll}
-    \toprule
-    & \textbf{1 e 4 semanas} & \textbf{8 e 13 semanas} \\
-    \midrule
-    Passo 1, Brasil e 5 regiões & ETS amortecido (Holt-Winters) & Ingênuo sazonal \\
-    Passo 1, 27 UFs & Ingênuo (repete a última semana) & Ingênuo sazonal \\
-    Passo 2, reconciliação & MinT não negativo & Nenhuma (já soma) \\
-    \bottomrule
-  \end{tabular}\par\vspace{6pt}
-  \vspace{-4pt}
-  \begin{tikzpicture}[
-      caixa/.style={draw=pucblue,fill=puclight,rounded corners=2mm,align=center,
-        text width=3.1cm,minimum height=1cm,font=\scriptsize},
-      seta/.style={-{Stealth},thick,pucorange}]
-    \node[caixa] (ets) at (0,.75) {\textbf{ETS amortecido}\\Brasil + 5 regiões\\6 previsões};
-    \node[caixa] (ing) at (0,-.75) {\textbf{Ingênuo}\\27 UFs\\27 previsões};
-    \node[caixa,text width=3.6cm,fill=pucnavy,text=white,draw=pucnavy] (mint) at (4.6,0)
-      {\textbf{MinT não negativo}\\pesa cada previsão pela confiabilidade histórica (covariância dos erros) e exige UFs $\ge 0$};
-    \node[caixa] (uf) at (9.2,.75) {\textbf{27 UFs}\\reconciliadas};
-    \node[caixa] (agg) at (9.2,-.75) {\textbf{Regiões e Brasil}\\= soma das UFs};
-    \draw[seta] (ets) -- (mint); \draw[seta] (ing) -- (mint);
-    \draw[seta] (mint) -- (uf); \draw[seta] (uf) -- (agg);
-  \end{tikzpicture}\par\vspace{4pt}
-  \raggedright\footnotesize
-  As 33 previsões do passo 1 discordam entre si: o ETS do Brasil não é igual à soma dos ingênuos das UFs. O MinT busca os valores mais próximos de todas elas que somam corretamente. Em 8 e 13 semanas, copiar a temporada anterior em todas as séries já soma, e o MinT devolve os mesmos números.
-\end{frame}
-
-% ===============================================================
-\begin{frame}{Qual ETS? Seleção entre três candidatos}
-  \scriptsize
-  \centering
-  \begin{tabular}{lccccl}
-    \toprule
-    Candidato & Tendência & MASE $h=1$ & MASE $h=4$ & Negativas$\to$0 ($h=4$) & Situação \\
-    \midrule
-    Sazonal aditivo & nenhuma & 0,551 & 1,511 & 2,9\% & comparado \\
-    Tendência aditiva & aditiva & 0,541 & 1,442 & 12,9\% & excluído \\
-    \textbf{Tendência amortecida} & \textbf{aditiva amortecida} & \textbf{0,507} & \textbf{1,311} & 6,0\% & \textbf{selecionado} \\
-    \bottomrule
-  \end{tabular}\par
-  \nota{Todos com sazonalidade aditiva de 52 semanas. MASE médio de Brasil e regiões, 348 avaliações por célula. Negativas$\to$0: previsões negativas truncadas em zero.}\par\vspace{6pt}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{.52\textwidth}
-      \rotulo{O modelo selecionado}
+    \begin{column}{.48\textwidth}
+      \rotulo{Unidade prevista}
       \begin{itemize}
-        \item Holt-Winters aditivo com tendência amortecida, equivalente às previsões pontuais do ETS(A,Ad,A).
-        \item Período sazonal de 52 semanas e inicialização heurística (\texttt{statsmodels} \texttt{ExponentialSmoothing}).
-        \item Reajustado em cada uma das 58 origens: 348 de 348 ajustes convergiram.
-      \end{itemize}
-    \end{column}
-    \begin{column}{.44\textwidth}
-      \rotulo{Por que este}
-      \begin{itemize}
-        \item Menor MASE em 1 e 4 semanas para Brasil e regiões.
-        \item A tendência sem amortecimento extrapola quedas e gera muitas previsões negativas, corrigidas para zero.
-        \item O amortecimento faz a tendência perder força com o horizonte.
+        \item Semana de \textbf{início dos sintomas}.
+        \item UF de \textbf{residência}.
+        \item Hospitalização e confirmação de VSR.
+        \item 27 UFs + 5 regiões + Brasil = 33 séries.
       \end{itemize}
     \end{column}
   \end{columns}
+  \vspace{8pt}\nota{Não é ocupação de leitos, incidência na população ou contagem pela data de admissão hospitalar. Fonte: OpenDataSUS; manifesto e regras nas etapas 1--11.}
 \end{frame}
 
-% ===============================================================
-\begin{frame}{Critério de comparação: a política supera os baselines?}
-  \centering
-  \includegraphics[width=.85\textwidth]{baselines_vs_politica.png}\par\vspace{2pt}
+\begin{frame}{O tratamento e a exploração orientaram os modelos}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.48\textwidth}
+      \rotulo{Tratamento}
+      \begin{itemize}
+        \item Auditoria de datas, idade, testes e geografia.
+        \item 2 linhas duplicadas removidas após investigação.
+        \item 407 semanas; semanas incompletas não viram zero.
+        \item Maturidade de 13 semanas: reduz incompletude por atraso.
+      \end{itemize}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \rotulo{Achados que importam}
+      \begin{itemize}
+        \item 395 semanas maduras, até 19/07/2026.
+        \item Sazonalidade e nível variam entre temporadas e regiões.
+        \item 13 UFs têm mais de 50\% de semanas zero.
+        \item Zeros registrados não provam ausência de circulação.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \vspace{2pt}
+  \begin{cartao}\small Comparamos 58 origens temporais e horizontes de 1, 4, 8 e 13 semanas. O treino respeita a data de origem, mas usa uma versão consolidada dos dados: não reconstrói a disponibilidade histórica.\end{cartao}
+\end{frame}
+
+\begin{frame}{Como os resultados mudaram nossa estratégia}
   \footnotesize
-  \begin{tabular}{lccc}
+  \begin{cartao}\textbf{Etapas 20--40: referências e modelos clássicos.}
+  Ingênuo, sazonal, ETS e SARIMA(X). ETS amortecido para agregados no curto prazo; dificuldades de convergência no SARIMA clássico. Primeira política hierárquica com a Base V2.\end{cartao}
+  \begin{cartao}\textbf{Etapa 41: enfrentar a intermitência nas UFs.}
+  Croston e variantes, TSB, ADIDA, IMAPA, TSB sazonal, GLM binomial negativo e LightGBM. LightGBM compartilhado nas 27 UFs teve menor MASE médio por horizonte: nasce a Base V3.\end{cartao}
+  \begin{cartao}\textbf{Etapas 42--43: aprendizado compartilhado e decisão conjunta.}
+  LightGBM nos 33 nós, com escala normalizada no treino. A Base V4 combina candidatos por nível/horizonte. A escolha final considera o resultado \textbf{depois} da reconciliação.\end{cartao}
+  \nota{V1--V4 são versões das previsões iniciais, não quatro bases diferentes de pacientes. LightGBM usa árvores; não é deep learning.}
+\end{frame}
+
+\begin{frame}{A política vigente: modelos-base + reconciliação}
+  \small\centering
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabular}{llll}
     \toprule
-    MASE: política vs.\ melhor baseline & Brasil & Regiões & UFs \\
+    & \textbf{1 e 4 semanas (V3)} & \textbf{8 semanas (V4)} & \textbf{13 semanas (V4)}\\
     \midrule
-    $h=1$ (vs.\ ingênuo) & 0,332 vs.\ 0,415 & 0,534 vs.\ 0,582 & 1,133 vs.\ 1,145 \\
-    $h=4$ (vs.\ melhor ingênuo) & 1,202 vs.\ 1,546 & 1,417 vs.\ 1,694 & 2,211 vs.\ 2,285 \\
-    $h=8$ e $13$ & \multicolumn{3}{c}{iguais: a política \emph{é} o ingênuo sazonal} \\
+    Brasil & ETS amortecido & Ingênuo sazonal & Ingênuo sazonal\\
+    Regiões & ETS amortecido & LightGBM 33 nós & Ingênuo sazonal\\
+    UFs & LightGBM 27 UFs & LightGBM 33 nós & LightGBM 33 nós\\
     \bottomrule
   \end{tabular}
+  \vspace{12pt}
+  \begin{mensagem}\centering\textbf{Todos os horizontes: MinT-OAS não negativo}\par
+  \small Ajusta as previsões conjuntamente, exige UFs não negativas e obtém regiões e Brasil pela soma.\end{mensagem}
+  \raggedright\small
+  A V3 no curto prazo é um compromisso entre níveis, não vencedora universal. Em $h=1$, V4 reconciliada é melhor no Brasil; em $h=4$, V4 é melhor nas UFs.
+  \vspace{4pt}\par\nota{Fonte: composição da etapa 43 e comparação V3/V4 da etapa 42. Nenhum critério clínico de ponderação foi estimado.}
 \end{frame}
 
-% ===============================================================
-\begin{frame}{Visão geral: o erro cresce com o horizonte e cai com a agregação}
-  \centering
-  \includegraphics[width=.85\textwidth]{mase_nivel_horizonte.png}\par\vspace{4pt}
+\begin{frame}{O que a hierarquia acrescenta}
   \begin{columns}[T,onlytextwidth]
-    \begin{column}{.32\textwidth}\small Brasil: a reconciliação custa pouco (0,315 $\to$ 0,332 em $h=1$).\end{column}
-    \begin{column}{.32\textwidth}\small Regiões: ganho leve em $h=1$, perda em $h=4$.\end{column}
-    \begin{column}{.32\textwidth}\small UFs: ganho em $h=1$ e $h=4$ (2,285 $\to$ 2,211).\end{column}
+    \begin{column}{.48\textwidth}
+      \rotulo{Previsão-base}
+      \begin{cartao}\small Modelos fazem previsões separadas. O Brasil previsto pode ser diferente da soma das 27 UFs.\end{cartao}
+      \rotulo{Reconciliação}
+      \begin{cartao}\small MinT usa a covariância dos erros; OAS regulariza essa estimativa. A restrição de não negatividade entra dentro da otimização.\end{cartao}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \rotulo{Exemplo apenas ilustrativo}
+      \begin{cartao}\small Total previsto: 100. Partes previstas: 60 + 60 = 120.\par\vspace{4pt}
+      A reconciliação ajusta o conjunto até obter total = soma das partes. O valor depende dos pesos e das restrições.\end{cartao}
+      \begin{mensagem}\small Coerência não garante menor erro. Por isso comparamos o desempenho após reconciliar.\end{mensagem}
+    \end{column}
+  \end{columns}
+  \nota{Comparar a Base V2 com a política atual mistura mudança dos modelos-base e reconciliação. Esse ganho não pode ser atribuído apenas ao MinT.}
+\end{frame}
+
+\begin{frame}{Resultado: melhora em 11 de 12 combinações}
+  \centering\small
+  \input{tabelas/desempenho_slides.tex}
+  \par\vspace{6pt}\nota{MASE: política anterior (etapa 37) $\to$ atual (etapa 43). Menor é melhor. Média por nível; não implica ganho em cada UF.}
+  \vspace{8pt}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.48\textwidth}
+      \numero{190,5 $\to$ 121,9}{MAE no Brasil em 4 semanas: redução do erro em casos.}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{cartao}\small Regiões em 13 semanas têm pequena piora no MASE. Não demonstramos significância estatística nem ganho em dados futuros.\end{cartao}
+    \end{column}
   \end{columns}
 \end{frame}
 
-% ===============================================================
-\begin{frame}{Brasil: observado vs.\ política final, por horizonte}
+\begin{frame}{Aplicação demonstrativa: origem em 19/07/2026}
   \begin{columns}[T,onlytextwidth]
-    \begin{column}{.68\textwidth}
-      \includegraphics[width=\textwidth]{brasil_obs_vs_prev.png}
+    \begin{column}{.64\textwidth}
+      \includegraphics[width=\textwidth]{brasil_previsao_operacional.png}
     \end{column}
-    \begin{column}{.3\textwidth}
-      \small
+    \begin{column}{.33\textwidth}\small
       \begin{itemize}
-        \item $h=1$: acompanha a curva quase exatamente (MASE 0,33).
-        \item $h=4$: forma correta, mas atrasa e exagera picos (2025: $\approx$3.200 previsto vs.\ 2.700).
-        \item $h=8$ e $13$: aqui a política é o ingênuo sazonal, que repete a temporada anterior; acerta o calendário, erra a amplitude quando a onda muda de tamanho.
+        \item Brasil: 683, 329, 190 e 88 casos nas quatro semanas-alvo.
+        \item Uma contagem por semana-alvo, \textbf{não acumulada}.
+        \item Faixas aumentam a incerteza no horizonte longo.
+        \item Não é previsão emitida em tempo real em novembro.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \vspace{4pt}\nota{Faixas empíricas marginais: seus limites não somam entre níveis. Nenhum alerta de ajuste acima do P95 na etapa 43; isso não comprova acerto.}
+\end{frame}
+
+\begin{frame}{O que podemos concluir -- e o que falta validar}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{.48\textwidth}
+      \rotulo{Contribuição}
+      \begin{itemize}
+        \item Tratamento documentado de dados públicos.
+        \item Referências simples comparadas a métodos clássicos e aprendizado de máquina.
+        \item Uma visão territorial coerente e não negativa.
+        \item Ganhos retrospectivos, especialmente no curto prazo.
+      \end{itemize}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \rotulo{Limites}
+      \begin{itemize}
+        \item Mesmas 58 origens para seleção e avaliação: possível otimismo.
+        \item Sem versões históricas dos dados nem nowcasting.
+        \item Faixas LOO podem usar erros posteriores à origem; subcobertura.
+        \item Sem demonstração de impacto clínico ou de ocupação de leitos.
       \end{itemize}
     \end{column}
   \end{columns}
 \end{frame}
 
-% ===============================================================
-\begin{frame}{Regiões: onde a política acerta e onde perde}
-  \centering
-  \includegraphics[width=\textwidth]{regioes_mase.png}\par\vspace{4pt}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{.48\textwidth}\small
-      Sudeste e Sul são as mais previsíveis em $h=1$ (0,34 e 0,37). O Nordeste é a mais difícil em todos os horizontes (2,77 em $h=13$), com picos mais tardios e variáveis.
-    \end{column}
-    \begin{column}{.48\textwidth}\small
-      Em $h=1$ o MinT melhora 3 de 5 regiões; em $h=4$ só o Norte melhora. Em $h\ge8$ não há diferença: a Base V2 já é coerente.
-    \end{column}
-  \end{columns}
+\begin{frame}{Mensagem final e próxima validação}
+  \begin{mensagem}\large
+  A contribuição é combinar previsões úteis com coerência geográfica, deixando claros os ganhos e as limitações.
+  \end{mensagem}
+  \vspace{10pt}
+  \begin{enumerate}
+    \item Congelar a política da etapa 43.
+    \item Avaliar novas semanas maduras sem escolher modelos novamente pelo próprio teste.
+    \item Investigar atualização dos dados e nowcasting antes de uso em tempo real.
+  \end{enumerate}
+  \vspace{12pt}\nota{Fim da parte principal. Os próximos slides são material de apoio para perguntas e estudo.}
 \end{frame}
 
-% ===============================================================
-\begin{frame}{Regiões: previsões de 4 semanas ao longo das origens}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{.66\textwidth}
-      \includegraphics[width=\textwidth,height=.78\textheight,keepaspectratio]{regioes_obs_vs_prev_h4.png}
-    \end{column}
-    \begin{column}{.32\textwidth}
-      \small
-      \begin{itemize}
-        \item As duas previsões ficam próximas; o MinT redistribui pouco entre regiões.
-        \item O erro está concentrado nos picos: subida subestimada e descida superestimada (efeito de atraso).
-        \item Norte, com picos mais largos, é o único beneficiado pelo MinT em $h=4$.
-      \end{itemize}
-    \end{column}
-  \end{columns}
+\appendix
+\begin{frame}{Apoio: gráficos não significam previsão perfeita}
+  \centering\includegraphics[width=.80\textwidth,height=.58\textheight,keepaspectratio]{brasil_obs_vs_prev.png}
+  \par\small Cada ponto é uma previsão fora da janela de treino, emitida em uma das 58 origens. A linha que liga pontos é visual; as origens estão separadas por quatro semanas. Erros devem ser lidos nas métricas, não apenas pela proximidade das curvas.
 \end{frame}
 
-% ===============================================================
-\begin{frame}{UFs: o desempenho segue a intermitência}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{.36\textwidth}
-      \centering
-      \includegraphics[height=.72\textheight]{ufs_mase_heatmap.png}
-    \end{column}
-    \begin{column}{.6\textwidth}
-      \includegraphics[width=.9\textwidth]{ufs_mase_vs_zeros.png}\par
-      \small
-      \begin{itemize}
-        \item Correlação de 0,72 entre o MASE em $h=1$ e o \% de semanas com zero casos.
-        \item Melhor UF: PR (0,36); pior: MT (2,99, 75\% de semanas zero).
-        \item TO e PI têm MASE baixo apesar de muito intermitentes: quase sempre zero, e a previsão zero acerta.
-      \end{itemize}
-    \end{column}
-  \end{columns}
+\begin{frame}{Apoio: referências simples e política atual}
+  \centering\includegraphics[width=\textwidth,height=.64\textheight,keepaspectratio]{baselines_vs_politica.png}
+  \par\small A referência sazonal continua competitiva no longo prazo. A política atual não é mais igual à sazonal em todos os níveis nesses horizontes.
 \end{frame}
 
-% ===============================================================
-\begin{frame}{UFs: ganho do MinT não negativo sobre a Base V2}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{.6\textwidth}
-      \includegraphics[width=\textwidth,height=.8\textheight,keepaspectratio]{ufs_delta_mint.png}
-    \end{column}
-    \begin{column}{.38\textwidth}
-      \small
-      \numero{17 de 27}{UFs melhoram em $h=1$ e em $h=4$ (azul).}
-      \begin{itemize}
-        \item Maiores ganhos em $h=4$: PE, AL, MA e BA ($\approx -0{,}4$). O sinal agregado do ETS corrige a persistência das UFs.
-        \item Perdas: DF, TO, ES e MT. Em UFs quase sempre zero, a redistribuição adiciona casos que não ocorrem.
-      \end{itemize}
-    \end{column}
-  \end{columns}
+\begin{frame}{Apoio: diferenças regionais}
+  \centering\includegraphics[width=\textwidth,height=.64\textheight,keepaspectratio]{regioes_mase.png}
+  \par\small À direita, diferença entre política atual e Base V2 independente. Valores negativos favorecem a política. Inclui mudanças de modelos-base e reconciliação; não isola o efeito do MinT.
 \end{frame}
 
-% ===============================================================
-\begin{frame}{Previsão operacional: Brasil a partir de 19/07/2026}
-  \centering
-  \includegraphics[width=.74\textwidth]{brasil_previsao_operacional.png}\par\vspace{2pt}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{.5\textwidth}\small
-      751 (80\%: 668--829) em 1 semana e 556 (268--914) em 4 semanas. Cobertura retrospectiva das faixas: 77--78\% (80\%) e 90--93\% (95\%).
-    \end{column}
-    \begin{column}{.46\textwidth}
-      \begin{cartao}[borderline west={3pt}{0pt}{pucorange}]
-        \footnotesize\textbf{Alerta:} o MinT ajustou o Brasil em +129 casos ($h=1$) e +551 ($h=4$), acima do máximo histórico. Comunicar como cenário sob alta discordância.
-      \end{cartao}
-    \end{column}
-  \end{columns}
+\begin{frame}{Apoio: UFs e semanas sem casos registrados}
+  \centering\includegraphics[width=.9\textwidth,height=.65\textheight,keepaspectratio]{ufs_mase_vs_zeros.png}
+  \par\small A associação é descritiva. Percentual de zeros, volume, escala do MASE e cobertura de notificação influenciam a leitura. Não atribuímos causalmente o erro à intermitência.
 \end{frame}
 
-% ===============================================================
-\begin{frame}{Conclusões}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{.55\textwidth}
-      \begin{itemize}
-        \item O horizonte domina o erro: MASE do Brasil vai de 0,33 ($h=1$) para cerca de 1,5 ($h\ge8$).
-        \item A agregação ajuda: Brasil < regiões < UFs em todos os horizontes.
-        \item Nas UFs, a intermitência explica a maior parte da dificuldade.
-        \item O MinT não negativo transfere informação dos agregados para as UFs: ganha onde a previsão é mais difícil e cede pouco no Brasil.
-      \end{itemize}
-    \end{column}
-    \begin{column}{.41\textwidth}
-      \begin{mensagem}
-        \small Para um boletim conjunto UF--região--Brasil, a política final entrega números coerentes e possíveis. Para um número nacional isolado de curto prazo, a Base V2 direta tem erro menor.
-      \end{mensagem}
-      \vspace{4pt}
-      \nota{Próximo passo: avaliar a política congelada em semanas futuras maduras, fora dos 58 cortes usados na seleção.}
-    \end{column}
-  \end{columns}
+\begin{frame}{Apoio: três métricas e uma distinção essencial}
+  \small
+  \begin{cartao}\textbf{MAE}: média do erro absoluto, em casos. MAE 122 não significa que cada previsão erra exatamente 122.\end{cartao}
+  \begin{cartao}\textbf{RMSE}: também em casos; dá mais peso a erros grandes por elevar os erros ao quadrado antes da média.\end{cartao}
+  \begin{cartao}\textbf{MASE}: erro absoluto dividido pela variação sazonal média medida no treino da mesma série. Não é percentual de acerto; MASE abaixo de 1 não prova vitória sobre a referência fora da amostra.\end{cartao}
+  \begin{mensagem}\textbf{Modelo} produz uma previsão; \textbf{base V1--V4} reúne previsões iniciais; \textbf{reconciliação} ajusta o conjunto; \textbf{política} escolhe a regra por horizonte.\end{mensagem}
 \end{frame}
-
 \end{document}

@@ -1,5 +1,7 @@
 # Explicação inicial — Trabalho de Séries Temporais
 
+Nota de atualização (14/11/2026): este texto registra a proposta inicial. A fonte efetivamente utilizada nos modelos é o SIVEP-Gripe. SINASC foi uma possibilidade complementar, mas não entrou na execução. Consulte o RELATORIO_FINAL.md para os resultados até a etapa 43.
+
 ## Problema proposto
 O vírus sincicial respiratório (VSR) é uma causa importante de doenças respiratórias em crianças pequenas. Em determinados períodos do ano, ele pode aumentar a procura por atendimento e por internações pediátricas, mas esse aumento não ocorre da mesma forma nem no mesmo momento em todo o Brasil.
 

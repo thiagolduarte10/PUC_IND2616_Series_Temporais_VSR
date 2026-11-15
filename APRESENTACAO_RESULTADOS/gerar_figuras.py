@@ -59,7 +59,7 @@ for ax, h in zip(axes.flat, HORIZ):
     ax.plot(p.data_alvo, p.previsao_final, "o-", color=C_POL, ms=3, lw=1, label="Política final")
     ax.set_title(f"h = {h} semana{'s' if h > 1 else ''}  (MASE {m_pol[('BRASIL', 'BRASIL', h)]:.2f})")
 axes[0, 0].legend(frameon=False)
-fig.supylabel("Internações/semana")
+fig.supylabel("Casos hospitalizados / semana de sintomas")
 fig.savefig(OUT / "brasil_obs_vs_prev.png"); plt.close(fig)
 
 # 2) MASE por nível e horizonte: Base V2 vs política
@@ -176,13 +176,16 @@ iv = iv[iv.unidade == "BRASIL"].sort_values("data_alvo")
 o = ob[ob.data_alvo >= "2024-07-01"]
 fig, ax = plt.subplots(figsize=(10, 3.6))
 ax.plot(o.data_alvo, o.casos_observados, color=C_OBS, lw=1.2, label="Observado (maduro)")
-ax.fill_between(iv.data_alvo, iv.limite_inferior_95, iv.limite_superior_95, color=C_POL, alpha=0.15, label="Faixa 95%")
-ax.fill_between(iv.data_alvo, iv.limite_inferior_80, iv.limite_superior_80, color=C_POL, alpha=0.3, label="Faixa 80%")
-ax.plot(iv.data_alvo, iv.previsao_final, "o-", color=C_POL, label="Política final")
+# Faixas somente nos quatro alvos: não interpolar uma trajetória semanal.
+ax.vlines(iv.data_alvo, iv.limite_inferior_95, iv.limite_superior_95,
+          color=C_POL, alpha=0.3, lw=8, label="Faixa empírica 95%")
+ax.vlines(iv.data_alvo, iv.limite_inferior_80, iv.limite_superior_80,
+          color=C_POL, alpha=0.8, lw=3, label="Faixa empírica 80%")
+ax.plot(iv.data_alvo, iv.previsao_final, "o", color=C_POL, label="Política final (etapa 43)")
 for r in iv.itertuples():
     ax.annotate(f"{r.previsao_final:.0f}", (r.data_alvo, r.previsao_final), xytext=(4, 4),
                 textcoords="offset points", fontsize=8, color=C_POL)
-ax.set_ylabel("Internações/semana"); ax.legend(frameon=False, fontsize=8, loc="upper left")
+ax.set_ylabel("Casos hospitalizados / semana de sintomas"); ax.legend(frameon=False, fontsize=8, loc="upper left")
 fig.savefig(OUT / "brasil_previsao_operacional.png"); plt.close(fig)
 
 # Números usados nos slides
@@ -190,3 +193,33 @@ print("UFs que melhoram (h=1, h=4):", int((d[1] < 0).sum()), int((d[4] < 0).sum(
 print(reg_pol.round(3)); print(reg_delta.round(3))
 print("Melhor/pior UF h=1:", uf_pol[1].idxmin(), uf_pol[1].min().round(3), uf_pol[1].idxmax(), uf_pol[1].max().round(3))
 print("Correlação MASE h=1 x % zeros:", np.corrcoef(ordem, u[1])[0, 1].round(3))
+
+# Tabelas LaTeX geradas das mesmas evidências dos gráficos.
+TAB = OUT.parent / "tabelas"
+TAB.mkdir(exist_ok=True)
+quadro = pd.read_csv(MOD / "etapa_43_politica_final/quadro_desempenho_politica_final.csv")
+assert len(quadro) == 12 and not quadro.duplicated(["nivel", "horizonte_semanas"]).any()
+for row in quadro.itertuples():
+    assert abs(row.mase_politica_final - calc[(row.nivel, row.horizonte_semanas)]) < 1e-9
+def dec(v, lang):
+    result = f"{v:.3f}"
+    return result.replace(".", ",") if lang == "pt" else result
+for lang, filename in [("pt", "desempenho_slides.tex"), ("en", "desempenho_artigo.tex")]:
+    labels = ["Brasil", "Regiões", "UFs"] if lang == "pt" else ["Brazil", "Regions", "States"]
+    rows = [r"\begin{tabular}{lcccc}", r"\toprule", r" & $h=1$ & $h=4$ & $h=8$ & $h=13$ \\", r"\midrule"]
+    for nivel, label in zip(niveis, labels):
+        cells = []
+        for h in HORIZ:
+            r = quadro[(quadro.nivel == nivel) & (quadro.horizonte_semanas == h)].iloc[0]
+            cells.append(dec(r.mase_politica_v2, lang) + r" $\to$ " + dec(r.mase_politica_final, lang))
+        rows.append(label + " & " + " & ".join(cells) + r" \\")
+    rows.extend([r"\bottomrule", r"\end{tabular}"])
+    (TAB / filename).write_text("\n".join(rows) + "\n", encoding="utf-8")
+rows = [r"\begin{tabular}{lrrrr}", r"\toprule", r"$h$ & Target week & Point & 80\% band & 95\% band \\", r"\midrule"]
+for r in iv.itertuples():
+    rows.append(f"{r.horizonte_semanas} & {r.data_alvo:%d/%m/%Y} & {r.previsao_final:.1f} & "
+                f"{r.limite_inferior_80:.1f}--{r.limite_superior_80:.1f} & "
+                f"{r.limite_inferior_95:.1f}--{r.limite_superior_95:.1f}" + r" \\")
+rows.extend([r"\bottomrule", r"\end{tabular}"])
+(TAB / "operacional_artigo.tex").write_text("\n".join(rows) + "\n", encoding="utf-8")
+print("Tabelas LaTeX atualizadas a partir da etapa 43.")

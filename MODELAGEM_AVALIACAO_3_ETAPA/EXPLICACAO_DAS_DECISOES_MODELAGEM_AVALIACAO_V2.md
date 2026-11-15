@@ -1,5 +1,7 @@
 # Decisões da modelagem e avaliação de previsões — V2
 
+Atualização em 14/11/2026: as etapas 20–40 documentam a primeira rodada. A política vigente é a etapa 43, descrita ao final deste arquivo. Os números anteriores são resultados históricos daquela rodada.
+
 ## Objetivo desta etapa
 
 Esta etapa transforma o painel semanal maduro e os achados exploratórios em previsões avaliadas fora da amostra. O objetivo não é escolher o modelo mais complexo: é identificar previsões úteis para antecipar internações por VSR, com comparação justa, reprodutível e compatível com a estrutura geográfica dos dados.
@@ -380,7 +382,7 @@ Os quadros de alertas preservam a ressalva encontrada na Etapa 38A: houve alerta
 
 **Decisão.** A fase computacional foi encerrada. A entrega final deve apresentar conjuntamente: desempenho por nível e horizonte, a política escolhida, previsão operacional acompanhada de incerteza e as limitações metodológicas. Não será incluído um modelo novo após a consolidação, evitando seleção pós-hoc.
 
-## Conclusões atualizadas
+## Conclusões da primeira rodada (até 40)
 
 1. A base madura e o calendário temporal permitem comparação reprodutível sem vazamento de informação futura.
 2. ETS com tendência amortecida é a melhor referência para previsões de uma e quatro semanas em Brasil e regiões.
@@ -400,7 +402,7 @@ Os quadros de alertas preservam a ressalva encontrada na Etapa 38A: houve alerta
 16. As faixas empíricas de incerteza tiveram cobertura retrospectiva próxima, mas abaixo, dos níveis nominais; devem ser comunicadas como referência operacional marginal, não como garantia probabilística nem como intervalos hierarquicamente coerentes.
 17. A consolidação final demonstra que a escolha metodológica depende do objetivo: a Base V2 favorece alguns agregados isolados, enquanto a política hierárquica favorece previsões coerentes e não negativas para decisão articulada entre os três níveis geográficos.
 
-## Próximos passos para a entrega final
+## Encaminhamentos registrados ao encerrar a etapa 40
 
 1. Elaborar o relatório e a apresentação final a partir dos quadros consolidados, sem modificar a política após observar a previsão operacional.
 2. Distinguir claramente previsão nacional isolada, previsão hierárquica coerente e cenário operacional sob alta discordância.
@@ -439,3 +441,49 @@ Os quadros de alertas preservam a ressalva encontrada na Etapa 38A: houve alerta
 - Etapa 38A: `resultados_scripts/etapa_38a_diagnostico_plausibilidade_operacional/`.
 - Etapa 39: `resultados_scripts/etapa_39_intervalos_incerteza/`.
 - Etapa 40: `resultados_scripts/etapa_40_consolidacao_final/`.
+
+## Etapa 41 — Candidatos para as UFs e Base V3
+
+A intermitência observada motivou CrostonClassic, CrostonSBA, CrostonOptimized, TSB, ADIDA, IMAPA e TSB_SAZONAL. Também foram testados GLM_NB_FOURIER e LightGBM Tweedie nas 27 UFs. ADI e CV² classificam descritivamente as séries; a classificação completa não foi usada para decidir atributos antecipadamente.
+
+LightGBM apresentou menor MASE médio estadual por horizonte. Em h=13, a vantagem foi praticamente nula: 3,122054 contra 3,122231 da referência. V3 preserva Brasil/regiões da V2 e usa LightGBM nas UFs. A covariância do MinT é estimada com os erros dessa nova composição nas 39 origens de calibração.
+
+## Etapa 42 — LightGBM global e Base V4
+
+O modelo global usa 33 nós, normalização pela média de treino de cada nó e atributos retrospectivos. Os alvos do treino não ultrapassam a origem. Ele é comparado à V2 e ao LightGBM das UFs. V4 escolhe menor MASE por nível × horizonte.
+
+Na V4 independente: Brasil usa ETS em h=1, LightGBM global em h=4 e sazonal em h=8/13; regiões usam LightGBM global em h=1/4/8 e sazonal em h=13; UFs usam LightGBM UF em h=1/4 e global em h=8/13.
+
+Essa seleção é anterior ao MinT. Não se deve confundir o arquivo de vencedores da V4 com a composição final adotada.
+
+## Etapa 43 — Consolidação vigente
+
+| Horizonte | Base escolhida | Brasil | Regiões | UFs | Reconciliação |
+|---|---|---|---|---|---|
+| 1 e 4 semanas | V3 | ETS amortecido | ETS amortecido | LightGBM treinado conjuntamente nas 27 UFs | MinT-OAS não negativo |
+| 8 semanas | V4 | Ingênuo sazonal | LightGBM global de 33 nós | LightGBM global de 33 nós | MinT-OAS não negativo |
+| 13 semanas | V4 | Ingênuo sazonal | Ingênuo sazonal | LightGBM global de 33 nós | MinT-OAS não negativo |
+
+V3 em h=1/4 é um compromisso entre níveis. V4 reconciliada tem MASE menor no Brasil em h=1 (0,274 contra 0,288) e nas UFs em h=4 (1,889 contra 1,918). V3 favorece regiões e UFs em h=1 e os agregados em h=4. Não há dominância em todos os níveis.
+
+| Nível | h=1: anterior → atual | h=4: anterior → atual | h=8: anterior → atual | h=13: anterior → atual |
+|---|---|---|---|---|
+| Brasil | 0,333 → 0,288 | 1,202 → 0,802 | 1,575 → 1,541 | 1,522 → 1,457 |
+| Regiões | 0,535 → 0,480 | 1,417 → 1,113 | 1,775 → 1,700 | 1,883 → 1,889 |
+| UFs | 1,133 → 1,077 | 2,211 → 1,918 | 2,990 → 2,745 | 3,122 → 3,056 |
+
+A etapa 43 refaz validação, previsão demonstrativa, diagnóstico de ajustes, faixas e quadros finais para a política atual. São 7.656 previsões retrospectivas e 132 operacionais. Na origem 19/07/2026, Brasil recebe aproximadamente 683,2; 329,2; 190,0; 88,0 casos para h=1/4/8/13.
+
+Não há alerta acima do P95 no quadro atual. A ausência de alerta não demonstra acerto; o alerta da antiga etapa 38A descreve outra política.
+
+As faixas marginais têm cobertura LOO média de 75,86%–79,31% para 80% e de 91,38%–93,10% para 95%. O LOO pode usar erros posteriores à origem avaliada, sendo diagnóstico retrospectivo. Não representa teste prospectivo de intervalos.
+
+A seleção dos modelos e da política reutiliza as mesmas 58 origens usadas para calcular as métricas. Os ganhos podem estar otimistas; a magnitude desse viés não foi estimada. Não há teste final intocado nem demonstração de significância estatística. A calibração do MinT atravessa 2020–2021. A validação usa uma versão consolidada dos registros: separar datas de treino e alvo evita o uso direto de alvos futuros no ajuste, mas não reconstitui exatamente o que estava publicado em cada origem histórica. A maturidade de 13 semanas reduz o problema das semanas recentes; não substitui snapshots históricos ou uma avaliação em tempo real.
+
+## Onde consultar a versão atual
+
+- Notebooks 04, 05 e 06 nesta pasta: etapas 41, 42 e 43.
+- Resultados vigentes: `resultados_scripts/etapa_43_politica_final/`.
+- Código compartilhado: `../src/vsr/hierarquia.py`.
+- [Ordem de leitura](../docs/ORDEM_DE_LEITURA.md).
+- [Guia pessoal de Thiago](../docs/GUIA_PESSOAL_THIAGO.md).
