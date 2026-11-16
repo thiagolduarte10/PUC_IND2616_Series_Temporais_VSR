@@ -90,8 +90,8 @@ O tratamento de dados foi concluído. As saídas principais são a base individu
 Os modelos deverão ser treinados e avaliados apenas com semanas maduras; as semanas recentes serão usadas para previsão corrente ou para métodos futuros de correção de atraso.
 
 ## Arquivos de evidência
-- Notebook final da etapa: `notebook_final_tratamento_dados/Tratamento_Dados_1_Etapa_v2.ipynb`.
+- Notebook final da etapa: `01_Tratamento_Dados.ipynb`.
 - Resultados e auditorias: `resultados_scripts/`.
-- Manifesto de download local, fora do repositório: `/home/thiago/Series-Temporais-Trabalho/execucao_local_vsr/dados_brutos/SRAG/manifesto_download_srag.csv`.
+- Manifesto de download local, fora do repositório: `execucao_local_vsr/dados_brutos/SRAG/manifesto_download_srag.csv` (na raiz do repositório, ignorado pelo git).
 - Auditoria da base final: `resultados_scripts/etapa_8c_base_final/`.
 - Auditoria do painel: `resultados_scripts/etapa_9_painel_semanal/` e `resultados_scripts/etapa_11_maturidade/`.

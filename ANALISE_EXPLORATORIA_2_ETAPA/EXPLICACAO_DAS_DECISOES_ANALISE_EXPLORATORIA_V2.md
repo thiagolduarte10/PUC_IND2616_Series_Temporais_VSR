@@ -136,7 +136,7 @@ Foram usadas prioritariamente as 395 semanas maduras, porque as 12 semanas mais 
 Com a estrutura dos dados, a exploração e o calendário de validação definidos, a análise exploratória está concluída. A próxima fase é a modelagem: preparar as entradas, estabelecer referências simples e comparar formalmente os modelos no mesmo calendário temporal.
 
 ## Arquivos de evidência
-- Notebook final da EDA: `notebook_final_analise_exploratoria/Analise_Exploratoria_2_Etapa_v2.ipynb`.
+- Notebook final da EDA: `02_Analise_Exploratoria.ipynb`.
 - Resultados numéricos e gráficos: `resultados_scripts/`.
 - Entrada validada: `resultados_scripts/etapa_12_validacao_eda/`.
 - Sazonalidade: `resultados_scripts/etapa_14_sazonalidade/`.

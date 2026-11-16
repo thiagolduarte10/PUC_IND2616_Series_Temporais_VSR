@@ -1,0 +1,25 @@
+# Dados brutos, intermediários e tratados (grandes; baixados/gerados pelo notebook 01)
+execucao_local_vsr/
+execucao_local_vsr.zip
+
+# Pacotes .zip que algumas etapas gravam ao lado das pastas de resultados (cópias redundantes)
+resultados_scripts/*.zip
+
+# Instalação editável do pacote vsr
+*.egg-info/
+
+# Python / Jupyter
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+
+# Artefatos de compilação LaTeX (manter só .tex e .pdf)
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
