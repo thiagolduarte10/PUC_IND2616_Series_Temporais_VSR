@@ -87,6 +87,16 @@ etapa lê as saídas das anteriores em `*/resultados_scripts/`, então é possí
 Os backtests das etapas 41 e 42 ficam em cache (`previsoes_candidatos_ufs.csv`, `previsoes_lgbm_global.csv`);
 apague esses arquivos para recalculá-los depois de alterar um modelo.
 
+## Painel para o gestor
+
+Painel Streamlit que lê as saídas versionadas das etapas 27 e 43 (não reajusta modelos) e mostra as previsões
+com suas faixas de incerteza por território e horizonte:
+
+```bash
+pip install -r dashboard/requirements.txt
+streamlit run dashboard/app.py                   # a partir da raiz
+```
+
 ## Reprodutibilidade
 
 A execução completa a partir dos microdados congelados reproduz os resultados versionados; os detalhes (ambiente,
