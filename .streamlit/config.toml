@@ -1,0 +1,11 @@
+# Tema do painel (dashboard/app.py) — paleta PUC usada nas apresentações do projeto.
+[theme]
+base = "light"
+primaryColor = "#1264A3"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#EEF4FA"
+textColor = "#071B33"
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false

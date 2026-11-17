@@ -1,0 +1,7 @@
+# Dependências do painel (separadas do ambiente fixado do pipeline, que não precisa delas).
+#   pip install -r dashboard/requirements.txt
+#   streamlit run dashboard/app.py        (a partir da raiz do repositório)
+streamlit>=1.50
+plotly>=5.20
+pandas>=2.0
+pyarrow>=15
